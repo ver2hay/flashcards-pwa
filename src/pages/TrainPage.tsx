@@ -1,0 +1,188 @@
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../features/auth/authStore';
+import {
+  getFoldersByUserId,
+  getCardsByFolderId,
+  createSession,
+  updateSession,
+} from '../db';
+import { useTrainingStore } from '../features/training/trainingStore';
+import { shuffle, buildMultipleChoiceOptions } from '../features/training/engine';
+import {
+  TrainSetup,
+  ExactTranslationRunner,
+  MultipleChoiceRunner,
+} from '../features/training';
+import type { TrainingMode } from '../db';
+
+export function TrainPage() {
+  const userId = useAuthStore((state) => state.userId);
+  const navigate = useNavigate();
+  const [folders, setFolders] = useState<Awaited<ReturnType<typeof getFoldersByUserId>>>([]);
+  const [selectedFolderIds, setSelectedFolderIds] = useState<string[]>([]);
+  const [mode, setMode] = useState<string>('exact');
+  const [noCardsMessage, setNoCardsMessage] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  const {
+    sessionId,
+    mode: storeMode,
+    cards,
+    currentIndex,
+    score,
+    checkedMap,
+    currentAnswer,
+    currentOptions,
+    startTraining,
+    setCurrentAnswer,
+    setCurrentOptions,
+    checkAnswer,
+    nextCard,
+    reset,
+  } = useTrainingStore();
+
+  const loadFolders = useCallback(async () => {
+    if (!userId) return;
+    const list = await getFoldersByUserId(userId);
+    setFolders(list);
+  }, [userId]);
+
+  useEffect(() => {
+    loadFolders();
+  }, [loadFolders]);
+
+  const isRunnerActive = sessionId !== null && cards.length > 0;
+  const showRunner = isRunnerActive && currentIndex < cards.length;
+  const currentCard = showRunner ? cards[currentIndex] : null;
+  const checkedState = currentCard ? checkedMap[currentCard.id] : null;
+
+  const handleFolderToggle = (folderId: string) => {
+    setSelectedFolderIds((prev) =>
+      prev.includes(folderId)
+        ? prev.filter((id) => id !== folderId)
+        : [...prev, folderId]
+    );
+    setNoCardsMessage(null);
+  };
+
+  const handleStart = async () => {
+    if (!userId || selectedFolderIds.length === 0) return;
+    setNoCardsMessage(null);
+    const allCards: Awaited<ReturnType<typeof getCardsByFolderId>> = [];
+    for (const folderId of selectedFolderIds) {
+      const list = await getCardsByFolderId(folderId);
+      allCards.push(...list.filter((c) => c.userId === userId));
+    }
+    if (allCards.length === 0) {
+      setNoCardsMessage('No cards in selected folders.');
+      return;
+    }
+    const shuffled = shuffle([...allCards]);
+    const modeToUse: TrainingMode =
+      mode === 'multiple_choice' ? 'multiple_choice' : 'exact';
+    const session = await createSession({
+      userId,
+      mode: modeToUse,
+    });
+    startTraining(session.id, modeToUse, selectedFolderIds, shuffled);
+    if (modeToUse === 'multiple_choice') {
+      setCurrentOptions(buildMultipleChoiceOptions(shuffled, 0));
+    }
+  };
+
+  const handleCheck = async () => {
+    setChecking(true);
+    try {
+      await checkAnswer();
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const handleSelectOption = async (option: string) => {
+    setChecking(true);
+    try {
+      await checkAnswer(option);
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const handleNext = async () => {
+    const { done } = nextCard();
+    if (done && sessionId) {
+      const finalScore = useTrainingStore.getState().score;
+      await updateSession(sessionId, {
+        finishedAt: Date.now(),
+        score: finalScore,
+      });
+      navigate(`/results/${sessionId}`, { replace: true });
+    } else if (storeMode === 'multiple_choice') {
+      const state = useTrainingStore.getState();
+      setCurrentOptions(
+        buildMultipleChoiceOptions(state.cards, state.currentIndex)
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (!showRunner && !isRunnerActive) {
+      reset();
+    }
+    if (sessionId && cards.length > 0 && currentIndex >= cards.length) {
+      reset();
+    }
+  }, [showRunner, isRunnerActive, sessionId, cards.length, currentIndex, reset]);
+
+  if (isRunnerActive && showRunner && currentCard) {
+    if (storeMode === 'multiple_choice') {
+      return (
+        <MultipleChoiceRunner
+          currentCard={currentCard}
+          position={currentIndex + 1}
+          total={cards.length}
+          score={score}
+          options={currentOptions}
+          checked={checkedState?.checked ?? false}
+          userAnswer={checkedState?.userAnswer ?? ''}
+          isCorrect={checkedState?.isCorrect ?? false}
+          correctAnswer={currentCard.backText}
+          onSelectOption={handleSelectOption}
+          onNext={handleNext}
+          checking={checking}
+        />
+      );
+    }
+    return (
+      <ExactTranslationRunner
+        currentCard={currentCard}
+        position={currentIndex + 1}
+        total={cards.length}
+        score={score}
+        currentAnswer={currentAnswer}
+        onAnswerChange={setCurrentAnswer}
+        checked={checkedState?.checked ?? false}
+        userAnswer={checkedState?.userAnswer ?? ''}
+        isCorrect={checkedState?.isCorrect ?? false}
+        correctAnswer={currentCard.backText}
+        onCheck={handleCheck}
+        onNext={handleNext}
+        checking={checking}
+      />
+    );
+  }
+
+  return (
+    <TrainSetup
+      folders={folders}
+      selectedFolderIds={selectedFolderIds}
+      onFolderToggle={handleFolderToggle}
+      mode={mode}
+      onModeChange={setMode}
+      onStart={handleStart}
+      canStart={selectedFolderIds.length >= 1}
+      noCardsMessage={noCardsMessage}
+    />
+  );
+}
