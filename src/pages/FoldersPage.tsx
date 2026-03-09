@@ -17,6 +17,14 @@ export function FoldersPage() {
       getLessonsByUserId(userId),
       getCardsByUserId(userId),
     ]);
+    console.log('[Lessons] loaded', lessonList.length);
+    if (lessonList.length === 0) {
+      console.warn('[Lessons] No lessons found in lessons table', {
+        table: 'lessons',
+        lessonCount: lessonList.length,
+        cardCount: cards.length,
+      });
+    }
     setLessons(lessonList);
     const counts: Record<string, number> = {};
     for (const card of cards) {

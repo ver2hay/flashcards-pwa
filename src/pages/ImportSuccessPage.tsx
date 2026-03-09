@@ -5,7 +5,8 @@ import SchoolIcon from '@mui/icons-material/School';
 import UploadIcon from '@mui/icons-material/Upload';
 
 interface ImportSuccessState {
-  folderName: string;
+  lessonName?: string;
+  folderName?: string;
   count: number;
 }
 
@@ -13,7 +14,7 @@ export function ImportSuccessPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as ImportSuccessState | null;
-  const folderName = state?.folderName ?? 'Folder';
+  const lessonName = state?.lessonName ?? state?.folderName ?? 'Lesson';
   const count = state?.count ?? 0;
 
   return (
@@ -22,7 +23,7 @@ export function ImportSuccessPage() {
         Import complete
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-        <strong>{folderName}</strong>: {count} card{count === 1 ? '' : 's'} imported.
+        <strong>{lessonName}</strong>: {count} card{count === 1 ? '' : 's'} imported.
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Button
@@ -31,7 +32,7 @@ export function ImportSuccessPage() {
           onClick={() => navigate('/folders')}
           fullWidth
         >
-          Go to folders
+          Go to lessons
         </Button>
         <Button
           variant="contained"

@@ -1,6 +1,28 @@
 import { db } from '../database';
 import type { Lesson } from '../types';
 
+function generateId(): string {
+  return crypto.randomUUID();
+}
+
+function now(): number {
+  return Date.now();
+}
+
+export async function createLesson(
+  data: Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<Lesson> {
+  const ts = now();
+  const lesson: Lesson = {
+    ...data,
+    id: generateId(),
+    createdAt: ts,
+    updatedAt: ts,
+  };
+  await db.lessons.add(lesson);
+  return lesson;
+}
+
 export async function getById(id: string): Promise<Lesson | undefined> {
   return db.lessons.get(id);
 }

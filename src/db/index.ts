@@ -33,6 +33,7 @@ export {
 
 // Lessons repository
 export {
+  createLesson,
   getById as getLessonById,
   getByUserId as getLessonsByUserId,
   bulkUpsertLessons,

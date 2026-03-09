@@ -75,7 +75,7 @@ export function TrainPage() {
       allCards.push(...list.filter((c) => c.userId === userId));
     }
     if (allCards.length === 0) {
-      setNoCardsMessage('No cards in selected folders.');
+      setNoCardsMessage('No cards in selected lessons.');
       return;
     }
     const shuffled = shuffle([...allCards]);
