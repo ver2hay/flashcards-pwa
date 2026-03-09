@@ -5,6 +5,7 @@ export { db, FlashcardsDB } from './database';
 export type {
   User,
   Folder,
+  Lesson,
   Card,
   TrainingSession,
   TrainingAnswer,
@@ -30,13 +31,23 @@ export {
   deleteFolder,
 } from './repositories/folders';
 
+// Lessons repository
+export {
+  getById as getLessonById,
+  getByUserId as getLessonsByUserId,
+  bulkUpsertLessons,
+  deleteLessons,
+} from './repositories/lessons';
+
 // Cards repository
 export {
   createCard,
   bulkCreateCards,
   getById as getCardById,
   getByFolderId as getCardsByFolderId,
+  getByLessonId as getCardsByLessonId,
   getByUserId as getCardsByUserId,
+  replaceCardsForLesson,
   update as updateCard,
   deleteCard,
 } from './repositories/cards';

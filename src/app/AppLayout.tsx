@@ -27,7 +27,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../features/auth/authStore';
 
 const navItems = [
-  { path: '/folders', label: 'Folders', icon: <FolderIcon /> },
+  { path: '/folders', label: 'Lessons', icon: <FolderIcon /> },
   { path: '/import', label: 'Import', icon: <UploadIcon /> },
   { path: '/train', label: 'Train', icon: <SchoolIcon /> },
   { path: '/results', label: 'Results', icon: <BarChartIcon /> },

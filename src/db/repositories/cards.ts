@@ -45,8 +45,29 @@ export async function getByFolderId(folderId: string): Promise<Card[]> {
   return db.cards.where('folderId').equals(folderId).toArray();
 }
 
+export async function getByLessonId(lessonId: string): Promise<Card[]> {
+  return getByFolderId(lessonId);
+}
+
 export async function getByUserId(userId: string): Promise<Card[]> {
   return db.cards.where('userId').equals(userId).toArray();
+}
+
+export async function replaceCardsForLesson(
+  userId: string,
+  lessonId: string,
+  cards: Card[]
+): Promise<void> {
+  await db.transaction('rw', db.cards, async () => {
+    await db.cards
+      .where('folderId')
+      .equals(lessonId)
+      .and((card) => card.userId === userId)
+      .delete();
+    if (cards.length > 0) {
+      await db.cards.bulkPut(cards);
+    }
+  });
 }
 
 export async function update(

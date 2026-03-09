@@ -10,13 +10,13 @@ import {
   Typography,
 } from '@mui/material';
 import { TRAINING_MODE_OPTIONS } from '../types';
-import type { Folder } from '../../../db';
+import type { Lesson } from '../../../db';
 import Checkbox from '@mui/material/Checkbox';
 
 interface TrainSetupProps {
-  folders: Folder[];
-  selectedFolderIds: string[];
-  onFolderToggle: (folderId: string) => void;
+  lessons: Lesson[];
+  selectedLessonIds: string[];
+  onLessonToggle: (lessonId: string) => void;
   mode: string;
   onModeChange: (mode: string) => void;
   onStart: () => void;
@@ -25,9 +25,9 @@ interface TrainSetupProps {
 }
 
 export function TrainSetup({
-  folders,
-  selectedFolderIds,
-  onFolderToggle,
+  lessons,
+  selectedLessonIds,
+  onLessonToggle,
   mode,
   onModeChange,
   onStart,
@@ -41,18 +41,18 @@ export function TrainSetup({
       </Typography>
 
       <FormControl component="fieldset" sx={{ mt: 2, mb: 2 }} fullWidth>
-        <FormLabel component="legend">Folders (lessons)</FormLabel>
+        <FormLabel component="legend">Lessons</FormLabel>
         <FormGroup>
-          {folders.map((f) => (
+          {lessons.map((lesson) => (
             <FormControlLabel
-              key={f.id}
+              key={lesson.id}
               control={
                 <Checkbox
-                  checked={selectedFolderIds.includes(f.id)}
-                  onChange={() => onFolderToggle(f.id)}
+                  checked={selectedLessonIds.includes(lesson.id)}
+                  onChange={() => onLessonToggle(lesson.id)}
                 />
               }
-              label={f.name}
+              label={lesson.name}
             />
           ))}
         </FormGroup>

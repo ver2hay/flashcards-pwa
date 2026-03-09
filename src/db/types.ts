@@ -18,6 +18,14 @@ export interface Folder {
   updatedAt: number;
 }
 
+export interface Lesson {
+  id: string;
+  userId: string;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface Card {
   id: string;
   userId: string;

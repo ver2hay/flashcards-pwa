@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../features/auth/authStore';
 import {
-  getFoldersByUserId,
-  getCardsByFolderId,
+  getLessonsByUserId,
+  getCardsByLessonId,
   createSession,
   updateSession,
 } from '../db';
@@ -19,8 +19,8 @@ import type { TrainingMode } from '../db';
 export function TrainPage() {
   const userId = useAuthStore((state) => state.userId);
   const navigate = useNavigate();
-  const [folders, setFolders] = useState<Awaited<ReturnType<typeof getFoldersByUserId>>>([]);
-  const [selectedFolderIds, setSelectedFolderIds] = useState<string[]>([]);
+  const [lessons, setLessons] = useState<Awaited<ReturnType<typeof getLessonsByUserId>>>([]);
+  const [selectedLessonIds, setSelectedLessonIds] = useState<string[]>([]);
   const [mode, setMode] = useState<string>('exact');
   const [noCardsMessage, setNoCardsMessage] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
@@ -42,36 +42,36 @@ export function TrainPage() {
     reset,
   } = useTrainingStore();
 
-  const loadFolders = useCallback(async () => {
+  const loadLessons = useCallback(async () => {
     if (!userId) return;
-    const list = await getFoldersByUserId(userId);
-    setFolders(list);
+    const list = await getLessonsByUserId(userId);
+    setLessons(list);
   }, [userId]);
 
   useEffect(() => {
-    loadFolders();
-  }, [loadFolders]);
+    loadLessons();
+  }, [loadLessons]);
 
   const isRunnerActive = sessionId !== null && cards.length > 0;
   const showRunner = isRunnerActive && currentIndex < cards.length;
   const currentCard = showRunner ? cards[currentIndex] : null;
   const checkedState = currentCard ? checkedMap[currentCard.id] : null;
 
-  const handleFolderToggle = (folderId: string) => {
-    setSelectedFolderIds((prev) =>
-      prev.includes(folderId)
-        ? prev.filter((id) => id !== folderId)
-        : [...prev, folderId]
+  const handleLessonToggle = (lessonId: string) => {
+    setSelectedLessonIds((prev) =>
+      prev.includes(lessonId)
+        ? prev.filter((id) => id !== lessonId)
+        : [...prev, lessonId]
     );
     setNoCardsMessage(null);
   };
 
   const handleStart = async () => {
-    if (!userId || selectedFolderIds.length === 0) return;
+    if (!userId || selectedLessonIds.length === 0) return;
     setNoCardsMessage(null);
-    const allCards: Awaited<ReturnType<typeof getCardsByFolderId>> = [];
-    for (const folderId of selectedFolderIds) {
-      const list = await getCardsByFolderId(folderId);
+    const allCards: Awaited<ReturnType<typeof getCardsByLessonId>> = [];
+    for (const lessonId of selectedLessonIds) {
+      const list = await getCardsByLessonId(lessonId);
       allCards.push(...list.filter((c) => c.userId === userId));
     }
     if (allCards.length === 0) {
@@ -85,7 +85,7 @@ export function TrainPage() {
       userId,
       mode: modeToUse,
     });
-    startTraining(session.id, modeToUse, selectedFolderIds, shuffled);
+    startTraining(session.id, modeToUse, selectedLessonIds, shuffled);
     if (modeToUse === 'multiple_choice') {
       setCurrentOptions(buildMultipleChoiceOptions(shuffled, 0));
     }
@@ -175,13 +175,13 @@ export function TrainPage() {
 
   return (
     <TrainSetup
-      folders={folders}
-      selectedFolderIds={selectedFolderIds}
-      onFolderToggle={handleFolderToggle}
+      lessons={lessons}
+      selectedLessonIds={selectedLessonIds}
+      onLessonToggle={handleLessonToggle}
       mode={mode}
       onModeChange={setMode}
       onStart={handleStart}
-      canStart={selectedFolderIds.length >= 1}
+      canStart={selectedLessonIds.length >= 1}
       noCardsMessage={noCardsMessage}
     />
   );
