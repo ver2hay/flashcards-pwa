@@ -45,6 +45,7 @@ export {
 export {
   createCard,
   bulkCreateCards,
+  bulkUpsertCards,
   getById as getCardById,
   getByFolderId as getCardsByFolderId,
   getByLessonId as getCardsByLessonId,

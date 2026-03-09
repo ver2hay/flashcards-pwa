@@ -37,6 +37,14 @@ export async function bulkCreateCards(
   return cards.length;
 }
 
+export async function bulkUpsertCards(items: Card[]): Promise<number> {
+  if (items.length === 0) return 0;
+  await db.transaction('rw', db.cards, async () => {
+    await db.cards.bulkPut(items);
+  });
+  return items.length;
+}
+
 export async function getById(id: string): Promise<Card | undefined> {
   return db.cards.get(id);
 }

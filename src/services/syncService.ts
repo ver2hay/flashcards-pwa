@@ -50,6 +50,7 @@ function normalizeCard(
 
 export async function syncLessons(userId: string): Promise<void> {
   const remoteLessons = await fetchLessons();
+  console.log('[Sync] remote lessons', remoteLessons.length);
   const normalized = remoteLessons.map((lesson) => normalizeLesson(lesson, userId));
 
   const localLessons = await getLessonsByUserId(userId);
@@ -57,6 +58,7 @@ export async function syncLessons(userId: string): Promise<void> {
   const remoteIds = new Set(normalized.map((lesson) => lesson.id));
 
   await bulkUpsertLessons(normalized);
+  console.log('[Sync] lessons upserted', normalized.length);
 
   const staleLessonIds = localLessons
     .filter((lesson) => !remoteIds.has(lesson.id))
@@ -77,6 +79,8 @@ export async function syncLessons(userId: string): Promise<void> {
 
 export async function syncCards(userId: string, lessonId: string): Promise<void> {
   const remoteCards = await fetchLessonCards(lessonId);
+  console.log('[Sync] remote cards', lessonId, remoteCards.length);
   const cards = remoteCards.map((card) => normalizeCard(card, userId, lessonId));
   await replaceCardsForLesson(userId, lessonId, cards);
+  console.log('[Sync] cards replaced', lessonId, cards.length);
 }

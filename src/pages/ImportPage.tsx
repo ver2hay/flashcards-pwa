@@ -20,9 +20,11 @@ import {
   getLessonById,
   createLesson,
   bulkCreateCards,
+  bulkUpsertCards,
 } from '../db';
 import type { Lesson } from '../db';
 import { parseImportFile } from '../utils/importParser';
+import { createLessonCards } from '../services/lessonsApi';
 
 const TEMPLATE_CSV = `RU|KZ
 Коричневый|қоңыр
@@ -39,6 +41,13 @@ function validateLessonName(name: string): string | null {
     return `Max ${LESSON_NAME_MAX_LENGTH} characters`;
   }
   return null;
+}
+
+function parseEpoch(value?: string | number): number | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === 'number') return value;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? undefined : parsed;
 }
 
 function downloadTemplate(): void {
@@ -120,6 +129,7 @@ export function ImportPage() {
 
       let targetLessonId = lessonId;
       let targetLessonName = '';
+      let targetLessonSource: Lesson['source'] = 'local';
       if (lessonId === NEW_LESSON_VALUE) {
         const nameError = validateLessonName(newLessonName);
         if (nameError) {
@@ -134,24 +144,51 @@ export function ImportPage() {
         });
         targetLessonId = created.id;
         targetLessonName = created.name;
+        targetLessonSource = created.source;
       } else {
         const lesson = await getLessonById(lessonId);
         targetLessonName = lesson?.name ?? 'Lesson';
+        targetLessonSource = lesson?.source ?? 'local';
       }
 
       console.log('[Import] target lesson', {
         id: targetLessonId,
         name: targetLessonName,
+        source: targetLessonSource,
       });
 
-      const cards = rows.map((row) => ({
-        userId,
-        folderId: targetLessonId,
-        frontText: row.frontText,
-        backText: row.backText,
-      }));
-      const insertedCount = await bulkCreateCards(cards);
-      console.log('[Import] cards inserted', insertedCount);
+      if (targetLessonSource === 'cloud') {
+        console.log('[Import] uploading cards to cloud');
+        const remoteCards = await createLessonCards(
+          targetLessonId,
+          rows.map((row) => ({
+            frontText: row.frontText,
+            backText: row.backText,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          }))
+        );
+        console.log('[Import] cloud cards response', remoteCards.length);
+        const cards = remoteCards.map((card) => ({
+          id: card.id,
+          userId,
+          folderId: targetLessonId,
+          frontText: card.frontText,
+          backText: card.backText,
+          createdAt: parseEpoch(card.createdAt) ?? Date.now(),
+        }));
+        const insertedCount = await bulkUpsertCards(cards);
+        console.log('[Import] cards inserted', insertedCount);
+      } else {
+        const cards = rows.map((row) => ({
+          userId,
+          folderId: targetLessonId,
+          frontText: row.frontText,
+          backText: row.backText,
+        }));
+        const insertedCount = await bulkCreateCards(cards);
+        console.log('[Import] cards inserted', insertedCount);
+      }
 
       navigate('/import/success', {
         replace: true,

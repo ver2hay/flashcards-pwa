@@ -51,6 +51,7 @@ export interface LessonCardApiResponse {
   frontText: string;
   backText: string;
   createdAt?: string | number;
+  updatedAt?: string | number;
 }
 
 export async function createLesson(
@@ -62,6 +63,20 @@ export async function createLesson(
   return requestJson<LessonApiResponse>('/lessons', {
     method: 'POST',
     body: JSON.stringify(payload),
+  });
+}
+
+export async function createLessonCards(
+  lessonId: string,
+  cards: { frontText: string; backText: string; createdAt?: string | number; updatedAt?: string | number }[]
+): Promise<LessonCardApiResponse[]> {
+  if (!isCloudApiConfigured) {
+    throw new Error('Cloud API not configured');
+  }
+  const encoded = encodeURIComponent(lessonId);
+  return requestJson<LessonCardApiResponse[]>(`/lessons/${encoded}/cards`, {
+    method: 'POST',
+    body: JSON.stringify(cards),
   });
 }
 

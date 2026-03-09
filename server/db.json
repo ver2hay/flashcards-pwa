@@ -1,0 +1,1540 @@
+{
+  "lessons": [
+    {
+      "id": "5962d393-51e8-437f-a535-80e6dec79568",
+      "name": "red",
+      "source": "cloud",
+      "createdAt": 1773082742842,
+      "updatedAt": 1773082742842
+    },
+    {
+      "id": "03f7d2ed-f674-4ec6-ac6b-4ce8b75d7546",
+      "name": "xxx",
+      "source": "cloud",
+      "createdAt": 1773082844413,
+      "updatedAt": 1773082844413
+    }
+  ],
+  "cards": [
+    {
+      "id": "82bff2f7-2bd3-4366-a5bf-c3808e6b2124",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Кішкентай",
+      "backText": "маленький",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "913a51d8-35f2-4266-ab49-6cd941d59889",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "көру",
+      "backText": "Видеть",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "e8c756fa-4a7c-43ce-b320-b4bb3262f14d",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Жақсы көремін",
+      "backText": "я люблю",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "c7456ab6-cb23-4753-875b-1f8799584004",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Тәтті",
+      "backText": "сладкий",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "bb6440f5-ae89-47f7-9f31-0ab1fe26294a",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Бар",
+      "backText": "есть",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "72fa3c3f-8da7-435e-8b2d-4b258e0e14b2",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Шы/ші",
+      "backText": "вежливое окончание",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "d0266ff7-098f-449e-ae48-7b04414915a9",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ұмытып қалдым",
+      "backText": "я забыл",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "c3635e4e-fbf7-4611-b000-6b16bbc59f69",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Әріптес",
+      "backText": "коллега",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "d7cff2f2-21c2-437a-be12-51a758845200",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Менде",
+      "backText": "у меня",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "a5bb27f2-a75c-415a-9f02-88d73f954055",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Сенде",
+      "backText": "у тебя",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "d22a5fed-2624-4323-96d2-b216c103bb9e",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Сағат",
+      "backText": "часы",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "b0ee3bf4-d3ee-4f9a-b7fb-5631ac2c528f",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Уақыт",
+      "backText": "время",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "75b429f1-fc38-4eee-a644-a1146be07795",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қашан",
+      "backText": "когда",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "de9b18b3-4011-4033-86e7-ed0d917f48a9",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "айлық/жалақы",
+      "backText": "Зарплата",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "79da090c-4d20-4fac-81bd-de328472ef81",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Сау болыңыз",
+      "backText": "до свидания",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "01de69dd-b940-4dc3-8615-4ce327380835",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қайырлы кеш тілеймін",
+      "backText": "желаю хорошего вечера",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "1bdd13bd-759e-465c-bf53-cbfcee8b1289",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Кеш",
+      "backText": "вечер",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "e0b30f13-d714-42be-8539-3911a35537ff",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "жыл",
+      "backText": "Год",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "70b7187b-4d7a-4c50-bf2e-328cc67c07e4",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "қазір",
+      "backText": "Сейчас",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "babf80a4-0109-422b-9f33-0169a5d0482f",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Апта",
+      "backText": "неделя",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "2e0acc3c-51db-4900-b466-6aa6d8eea8a3",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "ай\"",
+      "backText": "\"Месяц, луна",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "28b0d11e-8074-42be-8252-337722e5b9d6",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "өткен",
+      "backText": "Прошлый",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "846ed0d0-3235-46fd-874e-e58973141f70",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Осы",
+      "backText": "этот",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "52eb114b-c488-4fbf-a141-8a172c88c2d3",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Келесі",
+      "backText": "следующий",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "142223a4-7ee9-4000-88f2-cfab9ada4612",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Болды",
+      "backText": "было",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "e014d51e-5414-4ef5-8fe2-5aa86785e678",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Болады",
+      "backText": "будет/можно/пойдет",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "d6d2c203-8abf-4b1e-87c3-7ad612322df8",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "туған күн",
+      "backText": "День рождение",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "d3105865-b53d-4b0e-bcdd-b51201a30abe",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Жарыс",
+      "backText": "соревнования",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "b5c16986-03ed-4d53-8bc6-2e39743ee3f0",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Сатып алу",
+      "backText": "купить",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "48d88e3e-8e2e-4f73-9ed0-2e571cdd6cd6",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Сату",
+      "backText": "продавать",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "ca2fb6af-e3ee-43e7-a813-864162028308",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Салу",
+      "backText": "ложить",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "a905a5c7-7cf7-465d-8e58-c34737a594d0",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "сапар",
+      "backText": "Поездка",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "8b683818-9da5-4981-b478-6f44f94adff3",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "демалыс",
+      "backText": "Отпуск",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "1bd53325-b0ae-459d-b13a-020aaa40e897",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "жол",
+      "backText": "Дорога",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "adbc8069-d7d4-40c0-aa3c-728a3c2dc477",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "бағыт",
+      "backText": "Маршрут",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "b54c43ba-112b-46aa-9d03-a4d430418944",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "ұшақ",
+      "backText": "Самолёт",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "e97c6d5e-541e-4e4c-a135-bba36ecb0e02",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "пойыз",
+      "backText": "Поезд",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "51e359cc-2bcc-438b-9b3e-6959c3ed3a31",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "автобус",
+      "backText": "Автобус",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "23cefc8d-997d-4939-8baa-3e59f4caa111",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "көлік",
+      "backText": "Машина",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "57999b2e-206d-442b-a7f8-20695e7203e9",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "такси",
+      "backText": "Такси",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "5bf10969-ac6d-4024-8713-f4530a1ea58c",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "әуежай",
+      "backText": "Аэропорт",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "3188ede2-3eec-40b9-a716-9b3ec7014b71",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "вокзал",
+      "backText": "Вокзал",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "a9f11f17-e39f-4c15-9873-19f1aacbb997",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "қонақ үй",
+      "backText": "Отель",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "cbc2a998-ea62-4981-bbb6-25717b57971e",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "қонақ үй",
+      "backText": "Гостиница",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "3620fd28-4a6e-49a6-8ea7-8d68e2903347",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "хостел",
+      "backText": "Хостел",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "9b24020e-6b18-40c1-89b9-92ebd0d68814",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "ұзақ",
+      "backText": "Долго",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "0dedf719-532d-490a-8af2-9929bf350024",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Атақты",
+      "backText": "известный",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "18a30ba3-f325-449f-b72f-181440dcba2d",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "көк",
+      "backText": "Синий",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "dc0720ea-724d-45a8-8d08-ecbbea21c238",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Үлкен",
+      "backText": "огромный",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "3ef995a5-acf2-427b-a491-d14aa75249ff",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "құрбы",
+      "backText": "Подруга",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "1e5b76d3-bdd6-4ab7-bfc5-4300a523be7c",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Жақын",
+      "backText": "близкий",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "6c594221-9771-47bf-aa24-4d370583439e",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Әйел",
+      "backText": "жена",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "8f0f381a-2e3d-463b-879b-726da684dca2",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Күйеу",
+      "backText": "муж",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "40526d0b-dcc7-40eb-9ff4-9dea6a394aae",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "супруг",
+      "backText": "Жолдас",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "79a5152e-4e9c-49a3-9764-3c13ca203fb2",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Жұбай",
+      "backText": "супруга",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "9a363d99-945b-4784-82df-7295a0cdd525",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Көрші",
+      "backText": "сосед",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "cdc38b4f-633b-4ecf-98cd-cbcb35b74e8c",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қаншадан",
+      "backText": "почем",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "c684e677-9807-4521-a5ad-9f1c01723558",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қанша тұрады",
+      "backText": "сколько стоит",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "9b919c57-f7b9-4218-999f-343f18197fa7",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Сабақ",
+      "backText": "урок",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "e4be31ed-13bd-4bf1-886f-0b34017e5467",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қашан шығасың",
+      "backText": "когда выйдешь?",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "e81a259f-7eb6-47da-856c-45c9d1fab7ea",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ат/есім",
+      "backText": "имя",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "a65e716e-02b9-4f24-9335-9c0e4a3293d8",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "надо/нужно",
+      "backText": "Керек",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "16013cd8-e87d-4f2e-886d-e6d53f9d0989",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Дәрі",
+      "backText": "лекарство",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "8c5837b8-eaa9-41e3-8b88-1342532821a3",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "жоғары",
+      "backText": "Вверх",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "25613b1b-5332-4c0c-a262-575a1a7f8620",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Кеңсе",
+      "backText": "офис",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "aa631af8-a157-4e11-8df3-8c2ff958c495",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Дейін",
+      "backText": "до",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "4225ac88-af7d-43f1-8ece-ed029c1542ea",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Кейін",
+      "backText": "после",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "55d2a596-35a3-4a15-9323-b7ccb4cacc62",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "половина",
+      "backText": "Жарты",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "dce9c088-b156-48b5-8931-46be67af717e",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Тамақ",
+      "backText": "еда",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "70eb57ef-c754-411b-b9df-e29773e5dc9d",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Таңғы ас",
+      "backText": "завтрак",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "106328b9-c6f7-4af3-9525-d16cab037236",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Түскі ас",
+      "backText": "обед",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "7b60b7e5-1a1e-4ad0-be48-ef8c54cf9f21",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Кешкі ас",
+      "backText": "ужин",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "ea799cc6-159b-48db-92b5-b194971af9b3",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Кеш",
+      "backText": "поздно/вечер",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "e0ee97d5-8751-4861-a587-a4bcd0345388",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Таза",
+      "backText": "чистый",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "acec8291-18d5-466a-a317-1529414ab91e",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Жұмсақ",
+      "backText": "мягкий",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "925caa72-e53b-4ff8-bd11-b32f154d7396",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "сусын",
+      "backText": "Напиток",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "7623b3a7-a87b-4da8-955f-2aac1631996a",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ыдыс",
+      "backText": "посуда",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "88c9bc20-53b2-45dd-b598-2617f155a775",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ұнайды",
+      "backText": "нравиться",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "e8998aa3-1146-4f1f-9404-9b4d7a4630b5",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Маған",
+      "backText": "мне",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "58c59d7c-c832-4ab3-9c08-3181e2e0c166",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Құтылу",
+      "backText": "избавиться",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "6c2416be-2b3d-4060-9f8e-ba6d06558691",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Өмір",
+      "backText": "жизнь",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "644b225c-a821-4356-a4f0-e90ee17409ed",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ұшамын",
+      "backText": "лечу",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "3b648262-8ede-47b2-84d9-72a89d7683fc",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "әдейі емес",
+      "backText": "Не специально",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "90474b95-76ee-4cda-935e-1cc3dade2889",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Бастау",
+      "backText": "начинать",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "8313d0f5-7e8a-419b-83bf-800c9e3a49b8",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Сыйлық",
+      "backText": "подарок",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "710e8e91-381e-4288-9074-021fb1bf16d7",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "мало",
+      "backText": "Аз",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "ee7714e2-75ef-4d71-8022-e84c56f2d3b1",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "ветер",
+      "backText": "Жел",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "6caa9606-e69f-4b0d-996d-9fee876465b9",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ұнамайды",
+      "backText": "не нравиться",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "c38cbe6b-05d7-46e8-8afc-01166abc17f8",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Суық",
+      "backText": "холодно",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "ae8dc073-401a-44f4-a7ec-2af33a4bfc02",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ыстық",
+      "backText": "жарко/горячий",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "f353d01b-c42c-47b4-8a4c-586541525e83",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Салқын",
+      "backText": "проходный",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "88167429-97ed-4a3c-a5e9-f7c13e5b4374",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қыс",
+      "backText": "зима",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "8b829856-ffe9-4cae-a762-656eb50f0695",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "теплый",
+      "backText": "Жылы",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "4be65e6d-ef48-4052-b319-3b3f82ef4c5f",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Сондықтан",
+      "backText": "поэтому",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "690d1ad5-cb8f-4fd6-91f7-756055fcbbe5",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Отбасы/жануя",
+      "backText": "семья",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "dcb48f6c-351a-43a2-8bb5-b8fc73a26de1",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Зейнеткер",
+      "backText": "пенсионер",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "175bf94b-4f47-4aa2-b605-182425dc9065",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Туысқан",
+      "backText": "родственник",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "ec8cc6de-cce2-42fa-b3f3-92d177b642b6",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Көлік жөндейді",
+      "backText": "ремонтирует машину",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "17968535-66e6-4036-b8e7-49602bf3314b",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қиын",
+      "backText": "сложно",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "86937208-f1d5-4ea2-a120-df9c14283b1b",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Сиыр еті",
+      "backText": "говядина",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "dc39033c-e16d-41cb-ad05-3db27ea9a25c",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "беріңізші",
+      "backText": "Дайте",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "64a2b122-6f4c-43b2-92bc-e15cf76d49eb",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ішу",
+      "backText": "пить",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "2405b9f6-e0a4-4c39-a6a7-c145d2eea397",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Тек",
+      "backText": "только",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "c9e22040-9cb0-4cbc-a8ec-891397c4c0c3",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Басқа",
+      "backText": "другой",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "f96173dd-2fb5-495c-8811-f8aab20b1ae5",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "заказ",
+      "backText": "Тапсырыс",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "442e1cd7-1ab5-4e96-9969-60924b50fe4e",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қабылданды",
+      "backText": "принято",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "cda634a2-d25f-45dd-8093-1ea2368fd324",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Кіру",
+      "backText": "вход",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "ff6f9f77-324e-4119-8f07-b06fa10cb1ed",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Дана",
+      "backText": "штука",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "256be9b0-9849-4cdc-8e63-7bcffeb480be",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Пайыз",
+      "backText": "процент",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "228fce41-343c-4543-85e5-f64761510e0c",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қанша болды",
+      "backText": "сколько вышло",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "7a8a88c4-675a-497f-9793-2a451fea0094",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Аударым",
+      "backText": "перевод",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "83b6b212-7d93-4713-9bc8-19e1bae27387",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Баяу айтыңызшы",
+      "backText": "скажите помедленнее",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "689f1f1d-bd37-442d-84e8-84cccf829d1e",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Аудардым",
+      "backText": "перевод",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "119356d9-1f73-4ba8-b208-6a12f4eada35",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "түсті",
+      "backText": "Поступило",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "5e5090de-4566-4110-9f8a-055db4556b22",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Көрсетіңізші",
+      "backText": "покажите",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "5f4ffd51-15de-47b7-afd7-668065ebeb8d",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Міне",
+      "backText": "вот",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "d7798804-352e-4254-9826-4206569dd3c9",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қайдан келдіңіз",
+      "backText": "вы откуда",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "e8cdf332-7e1c-4863-9dc0-dde93199ff1c",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Болу",
+      "backText": "быть",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "65212422-57f0-4a5a-94ad-301a89c959cd",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Болдым",
+      "backText": "был",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "8761bf9f-49fd-469a-adbc-92b3c3b1b1f7",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Жол ақысы",
+      "backText": "оплата за проезд",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "6fdde98c-be70-4ec0-b7af-739667a6aacb",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Оңға",
+      "backText": "направо",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "1c52cb97-fcc5-4c93-a60c-56a083023949",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Солға",
+      "backText": "налева",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "79103358-d77d-41b6-84a7-3d9f765da607",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Бұрыласыз",
+      "backText": "повернете",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "c7ae4394-1657-42dc-9d8e-cf1b16320ee7",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "тіке",
+      "backText": "Прямо",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "78b929e5-4421-4060-84dd-d356a13ad1ea",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Аман",
+      "backText": "есен - живы-здоровы",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "82ef273e-ce01-4842-9df6-63ecf22f5f14",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ептеп",
+      "backText": "потихоньку",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "853235ad-f1ec-4794-8895-609c7d5a9946",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Жаста",
+      "backText": "лет/год",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "692f4193-945a-471b-935a-e572060c9bdc",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Тауық",
+      "backText": "курица",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "4d3963b4-5172-49f2-b1df-17abbc04a842",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Құс",
+      "backText": "птица",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "dd8ac0e9-9a67-4e71-90ec-3e901321b157",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Соңы",
+      "backText": "конец",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "ca92c358-a08f-4060-adc2-ccc8c6f3d944",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қысқа",
+      "backText": "короткий",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "26f2e723-48e8-4397-a314-c87e8aa26a5c",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Орташа",
+      "backText": "средний",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "31d70330-5c6a-4235-ac6d-64bab8e9b750",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Биік",
+      "backText": "высокий",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "fcb1561c-776c-4df0-9f93-5169e6593608",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Төмен",
+      "backText": "низкий",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "2e6ef4f3-9046-4329-b677-74557a6e8621",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ірі",
+      "backText": "крупный",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "dca9a39b-289a-40b8-a721-9a380b2477ff",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "ұсақ",
+      "backText": "мелкий",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "1212f3ce-522c-45c5-afac-ddf8c4567228",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Көне",
+      "backText": "древний",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "ac5a3b74-cfeb-43fa-8f4a-c26bf067e4a6",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Заманауи",
+      "backText": "современный",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "f6d38970-ffbf-432d-94ca-af1e316d3b2d",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "қонжық",
+      "backText": "Мишка",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "9082a090-b85c-4ac1-9c0f-6c5216b82da5",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "сұр",
+      "backText": "Серый",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "d983dad8-2ae6-4ebb-8540-f831ace826d7",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "қызғылт -сары",
+      "backText": "Оранжевый",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "69771140-c1a1-4890-8a3c-93705cf3dd99",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қою",
+      "backText": "густой",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "ebaf6724-8a80-4688-ac24-27d5a451a5f6",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Күлгін",
+      "backText": "розовый",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "a131ce1a-6af2-489a-bc39-7887ff449d4c",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "күміс",
+      "backText": "Серебро",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "dd0488f5-ff71-43f8-90fe-8644bccbc125",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Алтын",
+      "backText": "золотый",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "0e120b39-978d-4036-8039-9ff093e67046",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қасық",
+      "backText": "ложка",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "65adf9d9-c9c7-44be-8b2b-1abcc4dc9efa",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Шанышқы",
+      "backText": "вилка",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "bab07251-57fd-4825-8cf2-5e93c61b592a",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Үстел",
+      "backText": "Стол",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "22747eb0-003e-4ffa-9043-d2af59583375",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Орын",
+      "backText": "место",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "0263de75-a18d-4362-acdc-8387bf721eb0",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Орындық",
+      "backText": "стул",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "7b56f6d7-c938-4e45-bbce-97909f15055f",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Шәугім",
+      "backText": "чайник",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "0be92a0a-c004-4d65-a7bb-06ac03c51f77",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Кеудеше",
+      "backText": "кофта",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "1339dc33-95f2-4437-aeff-9b9b808b1950",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Енді",
+      "backText": "теперь",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "fc7e2f9a-b9a4-45cc-8b50-f08faf581078",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Маған ұнайды",
+      "backText": "мен нравиться",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "2b917e79-340a-4585-8761-b42acd262791",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қымбат",
+      "backText": "дорого",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "984ffc46-4ccf-4736-9264-785244c69a96",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Сапа",
+      "backText": "качество",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "2fea6ef2-f10a-4ff5-88ba-e3939830e6c1",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Көрсету",
+      "backText": "показывать",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "de643a46-1825-487e-aa84-17cc2764a6e9",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Көрсетіңізші",
+      "backText": "покажите пожалуйста",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "0f09021c-ecac-47a5-9dc2-ef4131590e98",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "мата",
+      "backText": "Материал",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "725b771c-bd62-4dca-ae4e-9fb796fe9f3d",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Қалай жуу керек",
+      "backText": "как мыть/ стирать",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "8f007cf5-06fd-4396-9733-613f754861fa",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Төлеймін",
+      "backText": "оплачу",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "065f956a-4822-403f-9816-0cc876c5c96c",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Жазылып кетіңіз",
+      "backText": "выздоравливайте",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "d718df74-6dad-454d-9d27-054139af83c2",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ауырып қалдым",
+      "backText": "заболел",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "b0a23877-14c8-43e7-a930-af70214f6d82",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ауырамын",
+      "backText": "больной",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "60326fe9-8d0d-40dc-a2e2-17877bafb6af",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Таразы",
+      "backText": "весы",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "5a86a487-9a31-4e94-aa83-cf98a5960e8b",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Өлшеңізшы",
+      "backText": "взвесьте пожалуйста",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "959c3937-0ef1-4d52-829e-00a8e717518b",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Тұздалған",
+      "backText": "соленный",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "176e880a-eec1-459f-8b03-10d109bf07a6",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Түр",
+      "backText": "вид",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "97f6b0dc-1909-4ed6-949b-839e1d185c16",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ғана/тек",
+      "backText": "только",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "ec113973-8351-44ad-aed0-cf2a59e3f8f9",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Көрсем бола ма",
+      "backText": "могу Ли я посмотреть",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "f2e4ccd1-e436-4364-a08d-e925920d2a45",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "қышқыл",
+      "backText": "Кислый",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "5d0843d8-3a9d-4a00-b225-33859c073883",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Онда",
+      "backText": "тогда",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "701946a6-5f69-4fa5-ac59-eab5661e2e56",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Онсыз да",
+      "backText": "и так",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "43a0c61e-f811-4640-b3dd-958f372957f5",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Енді келмеңіз",
+      "backText": "больше не приходите",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "52b89d7b-4832-46d7-bc7b-1b1b4d8cf10b",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Шарап",
+      "backText": "вино",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "945368a4-0d79-47df-83c7-d711a7bcb75a",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Ұлттық тағам",
+      "backText": "народная блюда",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "c2c312f3-3d78-410f-8890-bffe79b16518",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Жалақы",
+      "backText": "зарплата",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "1975ffc2-b7af-42bb-bcc2-b363e476cb38",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Пайда болды",
+      "backText": "появился",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "c2dd21eb-4655-4b81-ae63-2e50db3e6fcd",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Жоғары",
+      "backText": "высокий",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "a45dbfc8-f784-4dfb-9dc8-f963b4cbad73",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Жалғыз",
+      "backText": "один",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "6a4c79d9-dc5e-4f8b-8d89-6e72e8297c53",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Басқа жоқ",
+      "backText": "больше нет",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "5d10e968-cc4f-4a05-b348-762e03304ded",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "1 сағаттан",
+      "backText": "через час",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "57b6cc5b-df44-4351-a259-49814e6a78c9",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Тыңдау",
+      "backText": "слушать",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "63890c3c-0aa1-4d67-b7db-b1b0b17adf8c",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Мен тыңдаймын",
+      "backText": "я слушаю",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "725676ca-eb7b-4512-af24-dbca132e0a83",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Жаңалық",
+      "backText": "новости",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "3f539213-b308-4322-b17d-19f12edc78bd",
+      "lessonId": "5962d393-51e8-437f-a535-80e6dec79568",
+      "frontText": "Бос емеспін",
+      "backText": "я занят",
+      "createdAt": 1773082757404,
+      "updatedAt": 1773082757404
+    },
+    {
+      "id": "0a143a5d-fbd7-4fc2-a16e-0739fcc2815e",
+      "lessonId": "03f7d2ed-f674-4ec6-ac6b-4ce8b75d7546",
+      "frontText": "қоңыр",
+      "backText": "Коричневый",
+      "createdAt": 1773082882981,
+      "updatedAt": 1773082882982
+    },
+    {
+      "id": "dd7070c4-aa00-40d8-80e5-0a04f5f52627",
+      "lessonId": "03f7d2ed-f674-4ec6-ac6b-4ce8b75d7546",
+      "frontText": "қонжық",
+      "backText": "Мишка",
+      "createdAt": 1773082882982,
+      "updatedAt": 1773082882982
+    },
+    {
+      "id": "9dd42990-d89b-45b8-a6bf-b738b717d5da",
+      "lessonId": "03f7d2ed-f674-4ec6-ac6b-4ce8b75d7546",
+      "frontText": "сұр",
+      "backText": "Серый",
+      "createdAt": 1773082882982,
+      "updatedAt": 1773082882982
+    },
+    {
+      "id": "7112cb8b-ccc7-455b-a052-71741611e1bf",
+      "lessonId": "03f7d2ed-f674-4ec6-ac6b-4ce8b75d7546",
+      "frontText": "қызғылт/сары",
+      "backText": "Оранжевый",
+      "createdAt": 1773082882982,
+      "updatedAt": 1773082882982
+    }
+  ]
+}
