@@ -127,7 +127,11 @@ export function ImportPage() {
           setUploading(false);
           return;
         }
-        const created = await createLesson({ userId, name: newLessonName.trim() });
+        const created = await createLesson({
+          userId,
+          name: newLessonName.trim(),
+          source: 'local',
+        });
         targetLessonId = created.id;
         targetLessonName = created.name;
       } else {

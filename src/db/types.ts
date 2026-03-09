@@ -18,12 +18,15 @@ export interface Folder {
   updatedAt: number;
 }
 
+export type LessonSource = 'local' | 'cloud';
+
 export interface Lesson {
   id: string;
   userId: string;
   name: string;
   createdAt: number;
   updatedAt: number;
+  source: LessonSource;
 }
 
 export interface Card {

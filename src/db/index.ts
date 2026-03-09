@@ -6,6 +6,7 @@ export type {
   User,
   Folder,
   Lesson,
+  LessonSource,
   Card,
   TrainingSession,
   TrainingAnswer,

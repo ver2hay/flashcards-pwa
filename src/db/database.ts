@@ -38,6 +38,26 @@ export class FlashcardsDB extends Dexie {
       trainingSessions: 'id, userId, startedAt, finishedAt',
       trainingAnswers: 'id, sessionId, cardId',
     });
+
+    this.version(3)
+      .stores({
+        users: 'id, &username',
+        folders: 'id, userId, createdAt, updatedAt',
+        lessons: 'id, userId, updatedAt, source',
+        cards: 'id, userId, folderId, createdAt',
+        trainingSessions: 'id, userId, startedAt, finishedAt',
+        trainingAnswers: 'id, sessionId, cardId',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('lessons')
+          .toCollection()
+          .modify((lesson: { source?: string }) => {
+            if (!lesson.source) {
+              lesson.source = 'cloud';
+            }
+          })
+      );
   }
 }
 

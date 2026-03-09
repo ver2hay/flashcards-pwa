@@ -28,6 +28,7 @@ function normalizeLesson(
     name: lesson.name,
     createdAt: resolvedCreatedAt,
     updatedAt: resolvedUpdatedAt,
+    source: 'cloud',
   };
 }
 
