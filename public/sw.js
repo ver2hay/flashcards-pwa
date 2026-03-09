@@ -4,13 +4,18 @@
    - Navigation fallback: serve cached /index.html for SPA routing when offline
 */
 
-const CACHE_NAME = 'flashcards-app-cache-v1';
+const CACHE_NAME = 'flashcards-app-cache-v2';
 const PRECACHE_URLS = ['/', '/index.html', '/manifest.json', '/icons/icon-192.svg', '/icons/icon-512.svg'];
+const IS_LOCALHOST = self.location.hostname === 'localhost'
+  || self.location.hostname === '127.0.0.1'
+  || self.location.hostname === '[::1]';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
-  );
+  if (!IS_LOCALHOST) {
+    event.waitUntil(
+      caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+    );
+  }
   self.skipWaiting();
 });
 
@@ -24,11 +29,21 @@ self.addEventListener('activate', (event) => {
       )
     )
   );
+  if (IS_LOCALHOST) {
+    event.waitUntil(
+      caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+    );
+  }
   self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
   const request = event.request;
+
+  if (IS_LOCALHOST) {
+    event.respondWith(fetch(request));
+    return;
+  }
 
   // Always handle navigation requests: SPA routing fallback
   if (request.mode === 'navigate') {

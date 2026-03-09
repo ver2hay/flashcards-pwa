@@ -1,5 +1,6 @@
 const API_BASE_URL = (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env
   ?.VITE_API_BASE_URL;
+const USE_MOCKS = !API_BASE_URL;
 
 function buildUrl(path: string): string {
   const base = API_BASE_URL ? API_BASE_URL.replace(/\/$/, '') : '';
@@ -7,13 +8,19 @@ function buildUrl(path: string): string {
 }
 
 async function requestJson<T>(path: string): Promise<T> {
-  const response = await fetch(buildUrl(path), {
+  const url = buildUrl(path);
+  const response = await fetch(url, {
     headers: {
       Accept: 'application/json',
     },
   });
 
   if (!response.ok) {
+    if (response.status === 404 && path.endsWith('.json')) {
+      console.error(
+        `Mock data not found at ${path}. Add the file to public${path}.`
+      );
+    }
     const message = response.statusText || 'Request failed';
     throw new Error(`API ${response.status}: ${message}`);
   }
@@ -36,10 +43,14 @@ export interface LessonCardApiResponse {
 }
 
 export async function fetchLessons(): Promise<LessonApiResponse[]> {
-  return requestJson<LessonApiResponse[]>('/lessons');
+  const path = USE_MOCKS ? '/lessons.json' : '/lessons';
+  return requestJson<LessonApiResponse[]>(path);
 }
 
 export async function fetchLessonCards(lessonId: string): Promise<LessonCardApiResponse[]> {
   const encoded = encodeURIComponent(lessonId);
-  return requestJson<LessonCardApiResponse[]>(`/lessons/${encoded}/cards`);
+  const path = USE_MOCKS
+    ? `/lessons-${encoded}-cards.json`
+    : `/lessons/${encoded}/cards`;
+  return requestJson<LessonCardApiResponse[]>(path);
 }

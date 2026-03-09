@@ -1,0 +1,20 @@
+[
+  {
+    "id": "lesson-1-card-1",
+    "frontText": "Сәлем",
+    "backText": "Hello",
+    "createdAt": "2026-03-01T00:00:00.000Z"
+  },
+  {
+    "id": "lesson-1-card-2",
+    "frontText": "Рахмет",
+    "backText": "Thank you",
+    "createdAt": "2026-03-01T00:00:00.000Z"
+  },
+  {
+    "id": "lesson-1-card-3",
+    "frontText": "Иә",
+    "backText": "Yes",
+    "createdAt": "2026-03-01T00:00:00.000Z"
+  }
+]
