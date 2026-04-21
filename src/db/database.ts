@@ -70,6 +70,42 @@ export class FlashcardsDB extends Dexie {
       trainingAnswers: 'id, sessionId, cardId',
       lessonFiles: 'id, userId, lessonId, createdAt',
     });
+
+    this.version(5)
+      .stores({
+        users: 'id, &email',
+        folders: 'id, userId, createdAt, updatedAt',
+        lessons: 'id, userId, updatedAt, source',
+        cards: 'id, userId, folderId, createdAt',
+        trainingSessions: 'id, userId, startedAt, finishedAt',
+        trainingAnswers: 'id, sessionId, cardId',
+        lessonFiles: 'id, userId, lessonId, createdAt',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('users')
+          .toCollection()
+          .modify(
+            (user: {
+              email?: string;
+              username?: string;
+              emailVerified?: boolean;
+            }) => {
+              if (!user.email) {
+                const legacy = user.username;
+                if (legacy && legacy.includes('@')) {
+                  user.email = legacy.toLowerCase();
+                } else if (legacy) {
+                  user.email = `${legacy.toLowerCase()}@local`;
+                }
+              }
+              if (typeof user.emailVerified !== 'boolean') {
+                user.emailVerified = true;
+              }
+              delete user.username;
+            }
+          )
+      );
   }
 }
 

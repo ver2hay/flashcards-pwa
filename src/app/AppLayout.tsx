@@ -1,10 +1,12 @@
 import { Outlet, useNavigate } from 'react-router-dom';
 import {
+  Alert,
   AppBar,
   Avatar,
   Box,
   BottomNavigation,
   BottomNavigationAction,
+  Button,
   Container,
   IconButton,
   Paper,
@@ -37,8 +39,10 @@ export function AppLayout() {
   );
   const location = useLocation();
   const navigate = useNavigate();
-  const username = useAuthStore((state) => state.username);
+  const email = useAuthStore((state) => state.email);
   const logout = useAuthStore((state) => state.logout);
+  const sessionExpired = useAuthStore((state) => state.sessionExpired);
+  const setOnlineStatus = useAuthStore((state) => state.setOnlineStatus);
 
   const navValue = Math.max(
     0,
@@ -51,15 +55,21 @@ export function AppLayout() {
   };
 
   useEffect(() => {
-    const onOnline = () => setIsOnline(true);
-    const onOffline = () => setIsOnline(false);
+    const onOnline = () => {
+      setIsOnline(true);
+      setOnlineStatus(true);
+    };
+    const onOffline = () => {
+      setIsOnline(false);
+      setOnlineStatus(false);
+    };
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
     return () => {
       window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
     };
-  }, []);
+  }, [setOnlineStatus]);
 
   return (
     <Box
@@ -98,11 +108,11 @@ export function AppLayout() {
               Учись как в Duolingo — весело и каждый день
             </Typography>
           </Box>
-          {username && (
+          {email && (
             <>
               <Box sx={{ textAlign: 'right', mr: 0.5, display: { xs: 'none', sm: 'block' } }}>
                 <Typography variant="body2" sx={{ fontWeight: 800 }}>
-                  {username}
+                  {email}
                 </Typography>
                 <Typography
                   variant="caption"
@@ -173,6 +183,24 @@ export function AppLayout() {
 
       <Box component="main" sx={{ flexGrow: 1, pt: 2 }}>
         <Container maxWidth="sm" sx={{ px: { xs: 2, sm: 3 }, py: 1 }}>
+          {sessionExpired && isOnline && (
+            <Alert
+              severity="warning"
+              sx={{ mb: 2, fontWeight: 700, borderRadius: 3 }}
+              action={
+                <Button
+                  size="small"
+                  color="inherit"
+                  onClick={handleLogout}
+                  sx={{ fontWeight: 800 }}
+                >
+                  Войти
+                </Button>
+              }
+            >
+              Сессия истекла. Введите пароль снова, чтобы продолжить синхронизацию.
+            </Alert>
+          )}
           <Outlet />
         </Container>
       </Box>

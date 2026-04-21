@@ -5,8 +5,9 @@
 
 export interface User {
   id: string;
-  username: string;
+  email: string;
   passwordHash: string;
+  emailVerified: boolean;
   createdAt: number;
 }
 

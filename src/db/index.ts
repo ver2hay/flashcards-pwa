@@ -17,8 +17,9 @@ export type {
 // Users repository
 export {
   createUser,
+  upsertUser,
   getById as getUserById,
-  getByUsername,
+  getByEmail,
   getAll as getAllUsers,
   update as updateUser,
   deleteUser,

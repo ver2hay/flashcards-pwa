@@ -1,6 +1,12 @@
 /**
- * Flashcards sync API: JWT auth, user-scoped lessons/cards, file uploads to disk.
- * Env: PORT, CORS_ORIGIN, JWT_SECRET, UPLOAD_DIR
+ * Flashcards sync API:
+ *  - Email+password auth with 6-digit email verification codes
+ *  - JWT (no expiry) + password reset by email
+ *  - Shared library: lessons/cards/files visible to all authenticated users
+ *  - File uploads to disk
+ *
+ * Env: PORT, CORS_ORIGIN, JWT_SECRET, UPLOAD_DIR,
+ *      SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE, MAIL_FROM
  */
 import express from 'express';
 import fs from 'node:fs/promises';
@@ -10,6 +16,7 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import multer from 'multer';
+import { sendCode } from './mailer.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +28,8 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 const JWT_SECRET = process.env.JWT_SECRET || 'flashcards-dev-secret-change-in-production';
 const SALT_ROUNDS = 10;
+const CODE_TTL_MS = 15 * 60 * 1000;
+const CODE_MAX_ATTEMPTS = 6;
 
 await fs.mkdir(UPLOAD_DIR, { recursive: true });
 
@@ -54,13 +63,14 @@ async function readDb() {
     const data = JSON.parse(raw);
     return {
       users: Array.isArray(data.users) ? data.users : [],
+      pending: Array.isArray(data.pending) ? data.pending : [],
       lessons: Array.isArray(data.lessons) ? data.lessons : [],
       cards: Array.isArray(data.cards) ? data.cards : [],
       files: Array.isArray(data.files) ? data.files : [],
     };
   } catch (err) {
     if (err && err.code === 'ENOENT') {
-      const empty = { users: [], lessons: [], cards: [], files: [] };
+      const empty = { users: [], pending: [], lessons: [], cards: [], files: [] };
       await fs.writeFile(DB_PATH, JSON.stringify(empty, null, 2));
       return empty;
     }
@@ -74,6 +84,10 @@ async function writeDb(data) {
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function signToken(userId) {
+  return jwt.sign({ sub: userId }, JWT_SECRET);
 }
 
 function authMiddleware(req, res, next) {
@@ -97,58 +111,204 @@ function authMiddleware(req, res, next) {
   }
 }
 
-app.post('/auth/register', async (req, res) => {
-  const { username, password } = req.body ?? {};
-  if (!username || typeof username !== 'string' || !password || typeof password !== 'string') {
-    res.status(400).json({ error: 'username and password required' });
+function isValidEmail(value) {
+  return (
+    typeof value === 'string' &&
+    value.length <= 254 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+  );
+}
+
+function generateCode() {
+  return String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+}
+
+function normalizeEmail(email) {
+  return String(email).trim().toLowerCase();
+}
+
+async function prunePending(db) {
+  const now = Date.now();
+  const initial = db.pending.length;
+  db.pending = db.pending.filter((p) => p.expiresAt > now);
+  if (db.pending.length !== initial) {
+    await writeDb(db);
+  }
+}
+
+// --- AUTH: email verification ---
+
+app.post('/auth/request-code', async (req, res) => {
+  const { email, password, purpose } = req.body ?? {};
+  if (!isValidEmail(email)) {
+    res.status(400).json({ error: 'Некорректный e-mail' });
     return;
   }
-  const name = username.trim().slice(0, 64);
-  if (name.length < 2) {
-    res.status(400).json({ error: 'username too short' });
+  const kind = purpose === 'reset' ? 'reset' : 'register';
+  if (typeof password !== 'string' || password.length < 6) {
+    res.status(400).json({ error: 'Пароль должен быть не короче 6 символов' });
     return;
   }
+
   const db = await readDb();
-  if (db.users.some((u) => u.username.toLowerCase() === name.toLowerCase())) {
-    res.status(409).json({ error: 'username already taken' });
+  await prunePending(db);
+
+  const normalized = normalizeEmail(email);
+  const existing = db.users.find((u) => u.email === normalized);
+
+  if (kind === 'register' && existing) {
+    res.status(409).json({ error: 'Этот e-mail уже зарегистрирован' });
     return;
   }
-  const id = crypto.randomUUID();
+  if (kind === 'reset' && !existing) {
+    res.status(404).json({ error: 'Пользователь с таким e-mail не найден' });
+    return;
+  }
+
+  const code = generateCode();
   const passwordHash = bcrypt.hashSync(password, SALT_ROUNDS);
-  const user = {
-    id,
-    username: name,
+
+  db.pending = db.pending.filter(
+    (p) => !(p.email === normalized && p.purpose === kind)
+  );
+  db.pending.push({
+    id: crypto.randomUUID(),
+    email: normalized,
+    code,
     passwordHash,
+    purpose: kind,
+    attempts: 0,
     createdAt: nowIso(),
-  };
-  db.users.push(user);
+    expiresAt: Date.now() + CODE_TTL_MS,
+  });
   await writeDb(db);
-  const token = jwt.sign({ sub: id }, JWT_SECRET, { expiresIn: '30d' });
-  console.log('[API] POST /auth/register ->', id);
-  res.status(201).json({ token, userId: id, username: name });
+
+  try {
+    await sendCode(normalized, code, kind);
+  } catch (e) {
+    console.error('[Mail] send failed', e);
+    res.status(502).json({ error: 'Не удалось отправить письмо. Попробуйте позже.' });
+    return;
+  }
+
+  console.log('[API] /auth/request-code', normalized, kind);
+  res.json({ ok: true, ttlSeconds: Math.floor(CODE_TTL_MS / 1000) });
+});
+
+app.post('/auth/verify-code', async (req, res) => {
+  const { email, code, purpose } = req.body ?? {};
+  if (!isValidEmail(email) || typeof code !== 'string') {
+    res.status(400).json({ error: 'email и code обязательны' });
+    return;
+  }
+  const kind = purpose === 'reset' ? 'reset' : 'register';
+  const normalized = normalizeEmail(email);
+  const cleanCode = code.trim();
+
+  const db = await readDb();
+  await prunePending(db);
+
+  const idx = db.pending.findIndex(
+    (p) => p.email === normalized && p.purpose === kind
+  );
+  if (idx < 0) {
+    res.status(400).json({ error: 'Запросите код заново — предыдущий истёк' });
+    return;
+  }
+  const pending = db.pending[idx];
+  if (pending.expiresAt < Date.now()) {
+    db.pending.splice(idx, 1);
+    await writeDb(db);
+    res.status(400).json({ error: 'Срок действия кода истёк' });
+    return;
+  }
+  pending.attempts = (pending.attempts ?? 0) + 1;
+  if (pending.attempts > CODE_MAX_ATTEMPTS) {
+    db.pending.splice(idx, 1);
+    await writeDb(db);
+    res.status(429).json({ error: 'Слишком много попыток. Запросите новый код.' });
+    return;
+  }
+  if (pending.code !== cleanCode) {
+    await writeDb(db);
+    res.status(400).json({ error: 'Неверный код' });
+    return;
+  }
+
+  if (kind === 'register') {
+    const existing = db.users.find((u) => u.email === normalized);
+    let userId;
+    if (existing) {
+      existing.emailVerified = true;
+      existing.passwordHash = pending.passwordHash;
+      userId = existing.id;
+    } else {
+      userId = crypto.randomUUID();
+      db.users.push({
+        id: userId,
+        email: normalized,
+        passwordHash: pending.passwordHash,
+        emailVerified: true,
+        createdAt: nowIso(),
+      });
+    }
+    db.pending.splice(idx, 1);
+    await writeDb(db);
+    const token = signToken(userId);
+    console.log('[API] /auth/verify-code register ->', userId);
+    res.status(201).json({ token, userId, email: normalized });
+    return;
+  }
+
+  // reset
+  const user = db.users.find((u) => u.email === normalized);
+  if (!user) {
+    db.pending.splice(idx, 1);
+    await writeDb(db);
+    res.status(404).json({ error: 'Пользователь не найден' });
+    return;
+  }
+  user.passwordHash = pending.passwordHash;
+  db.pending.splice(idx, 1);
+  await writeDb(db);
+  const token = signToken(user.id);
+  console.log('[API] /auth/verify-code reset ->', user.id);
+  res.json({ token, userId: user.id, email: normalized });
 });
 
 app.post('/auth/login', async (req, res) => {
-  const { username, password } = req.body ?? {};
-  if (!username || typeof username !== 'string' || !password || typeof password !== 'string') {
-    res.status(400).json({ error: 'username and password required' });
+  const { email, password } = req.body ?? {};
+  if (!isValidEmail(email) || typeof password !== 'string') {
+    res.status(400).json({ error: 'email и password обязательны' });
     return;
   }
+  const normalized = normalizeEmail(email);
   const db = await readDb();
-  const user = db.users.find(
-    (u) => u.username.toLowerCase() === username.trim().toLowerCase()
-  );
+  const user = db.users.find((u) => u.email === normalized);
   if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
-    res.status(401).json({ error: 'invalid credentials' });
+    res.status(401).json({ error: 'Неверный e-mail или пароль' });
     return;
   }
-  const token = jwt.sign({ sub: user.id }, JWT_SECRET, { expiresIn: '30d' });
-  console.log('[API] POST /auth/login ->', user.id);
-  res.json({ token, userId: user.id, username: user.username });
+  if (!user.emailVerified) {
+    res.status(403).json({ error: 'E-mail не подтверждён. Завершите регистрацию.' });
+    return;
+  }
+  const token = signToken(user.id);
+  console.log('[API] /auth/login ->', user.id);
+  res.json({ token, userId: user.id, email: user.email });
 });
 
-// --- Shared library: lessons/cards/files are visible to every authenticated user.
-// `createdBy` is kept for auditing only and does NOT affect visibility.
+app.get('/auth/me', authMiddleware, async (req, res) => {
+  const db = await readDb();
+  const user = db.users.find((u) => u.id === req.userId);
+  if (!user) {
+    res.status(404).json({ error: 'user not found' });
+    return;
+  }
+  res.json({ id: user.id, email: user.email, emailVerified: !!user.emailVerified });
+});
+
+// --- Shared library: lessons/cards/files ---
 
 app.get('/lessons', authMiddleware, async (_req, res) => {
   const db = await readDb();

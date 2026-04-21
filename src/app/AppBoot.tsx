@@ -9,6 +9,7 @@ export function AppBoot() {
   const isHydrated = useAuthStore((state) => state.isHydrated);
   const hydrateFromStorage = useAuthStore((state) => state.hydrateFromStorage);
   const userId = useAuthStore((state) => state.userId);
+  const revalidateOnline = useAuthStore((state) => state.revalidateOnline);
 
   useEffect(() => {
     hydrateFromStorage();
@@ -16,6 +17,7 @@ export function AppBoot() {
 
   useEffect(() => {
     if (!isHydrated || !userId) return;
+    void revalidateOnline();
     let cancelled = false;
     syncLessons(userId).catch((error) => {
       if (cancelled) return;
@@ -24,7 +26,7 @@ export function AppBoot() {
     return () => {
       cancelled = true;
     };
-  }, [isHydrated, userId]);
+  }, [isHydrated, userId, revalidateOnline]);
 
   if (!isHydrated) {
     return (

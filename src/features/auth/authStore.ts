@@ -1,139 +1,268 @@
 import { create } from 'zustand';
-import { getByUsername, createUser, getUserById } from '../../db';
+import { getByEmail, upsertUser, getUserById } from '../../db';
 import { hashPassword } from './password';
 import {
   getSessionUserId,
   setSessionUserId,
   clearSessionUserId,
 } from './session';
-import { setCloudToken, clearCloudToken } from '../cloud/cloudAuth';
+import {
+  setCloudToken,
+  clearCloudToken,
+  getCloudToken,
+} from '../cloud/cloudAuth';
 import { isCloudApiConfigured } from '../../services/lessonsApi';
-import { loginToCloud, registerOnCloud } from '../../services/cloudAuthApi';
+import {
+  fetchMe,
+  loginToCloud,
+  requestEmailCode,
+  verifyEmailCode,
+} from '../../services/cloudAuthApi';
 
 export type AuthError = { success: false; error: string };
 export type AuthSuccess = { success: true };
 export type AuthResult = AuthError | AuthSuccess;
 
+export type PendingPurpose = 'register' | 'reset';
+
+type PendingAuth = {
+  email: string;
+  password: string;
+  purpose: PendingPurpose;
+} | null;
+
 interface AuthState {
   userId: string | null;
-  username: string | null;
+  email: string | null;
   isHydrated: boolean;
+  isOnline: boolean;
+  sessionExpired: boolean;
+  pending: PendingAuth;
+
   hydrateFromStorage: () => Promise<void>;
-  register: (
-    username: string,
-    password: string
+  requestCode: (
+    email: string,
+    password: string,
+    purpose: PendingPurpose
   ) => Promise<AuthResult>;
-  login: (username: string, password: string) => Promise<AuthResult>;
+  confirmCode: (code: string) => Promise<AuthResult>;
+  resendCode: () => Promise<AuthResult>;
+  clearPending: () => void;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  reauthenticate: (password: string) => Promise<AuthResult>;
+  revalidateOnline: () => Promise<void>;
+  setOnlineStatus: (online: boolean) => void;
   logout: () => void;
 }
 
-/**
- * Ensure a cloud JWT is stored: try login first, fall back to register.
- * This handles the common case where a local-only user signs in after
- * the cloud API was introduced (the account exists locally but not in
- * the cloud DB yet).
- */
-async function syncCloudSession(
-  username: string,
-  password: string,
-  mode: 'login' | 'register'
-) {
-  if (
-    !isCloudApiConfigured ||
-    (typeof navigator !== 'undefined' && !navigator.onLine)
-  ) {
-    return;
-  }
-  const tryLogin = async () => {
-    const { token } = await loginToCloud(username, password);
-    setCloudToken(token);
-  };
-  const tryRegister = async () => {
-    const { token } = await registerOnCloud(username, password);
-    setCloudToken(token);
-  };
-  try {
-    if (mode === 'register') {
-      try {
-        await tryRegister();
-      } catch (e) {
-        console.warn('[Auth] cloud register failed, fallback to login', e);
-        await tryLogin();
-      }
-      return;
-    }
-    try {
-      await tryLogin();
-    } catch (e) {
-      console.warn('[Auth] cloud login failed, fallback to register', e);
-      await tryRegister();
-    }
-  } catch (e) {
-    console.warn('[Auth] cloud session failed', mode, e);
-  }
+function isOnline(): boolean {
+  return typeof navigator === 'undefined' ? true : navigator.onLine;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   userId: null,
-  username: null,
+  email: null,
   isHydrated: false,
+  isOnline: isOnline(),
+  sessionExpired: false,
+  pending: null,
 
   hydrateFromStorage: async () => {
     const id = getSessionUserId();
     if (!id) {
-      set({ userId: null, username: null, isHydrated: true });
+      set({ userId: null, email: null, isHydrated: true });
       return;
     }
     const user = await getUserById(id);
     if (!user) {
       clearSessionUserId();
-      set({ userId: null, username: null, isHydrated: true });
+      clearCloudToken();
+      set({ userId: null, email: null, isHydrated: true });
       return;
     }
+    const token = getCloudToken();
     set({
       userId: user.id,
-      username: user.username,
+      email: user.email,
       isHydrated: true,
+      sessionExpired: !token && isCloudApiConfigured && isOnline(),
     });
   },
 
-  register: async (
-    username: string,
-    password: string
-  ): Promise<AuthResult> => {
-    const existing = await getByUsername(username);
-    if (existing) {
-      return { success: false, error: 'Username already taken' };
+  requestCode: async (email, password, purpose) => {
+    const normalized = email.trim().toLowerCase();
+    if (!normalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+      return { success: false, error: 'Введите корректный e-mail' };
     }
+    if (!password || password.length < 6) {
+      return {
+        success: false,
+        error: 'Пароль должен быть не короче 6 символов',
+      };
+    }
+    if (!isCloudApiConfigured) {
+      return {
+        success: false,
+        error: 'Облачный API не настроен. Регистрация невозможна.',
+      };
+    }
+    if (!isOnline()) {
+      return {
+        success: false,
+        error: 'Нет подключения к сети. Для регистрации нужен интернет.',
+      };
+    }
+    try {
+      await requestEmailCode(normalized, password, purpose);
+      set({ pending: { email: normalized, password, purpose } });
+      return { success: true };
+    } catch (e) {
+      return {
+        success: false,
+        error: e instanceof Error ? e.message : 'Не удалось отправить код',
+      };
+    }
+  },
+
+  resendCode: async () => {
+    const pending = get().pending;
+    if (!pending) return { success: false, error: 'Нет ожидающей регистрации' };
+    return get().requestCode(pending.email, pending.password, pending.purpose);
+  },
+
+  confirmCode: async (code) => {
+    const pending = get().pending;
+    if (!pending) return { success: false, error: 'Нет ожидающей регистрации' };
+    const cleanCode = code.trim();
+    if (!/^\d{4,8}$/.test(cleanCode)) {
+      return { success: false, error: 'Код должен быть числовым' };
+    }
+    try {
+      const res = await verifyEmailCode(
+        pending.email,
+        cleanCode,
+        pending.purpose
+      );
+      setCloudToken(res.token);
+      const passwordHash = await hashPassword(pending.password);
+      const user = await upsertUser({
+        id: res.userId,
+        email: res.email,
+        passwordHash,
+        emailVerified: true,
+      });
+      setSessionUserId(user.id);
+      set({
+        userId: user.id,
+        email: user.email,
+        pending: null,
+        sessionExpired: false,
+      });
+      return { success: true };
+    } catch (e) {
+      return {
+        success: false,
+        error: e instanceof Error ? e.message : 'Неверный код',
+      };
+    }
+  },
+
+  clearPending: () => set({ pending: null }),
+
+  login: async (email, password) => {
+    const normalized = email.trim().toLowerCase();
+    if (!normalized || !password) {
+      return { success: false, error: 'Введите e-mail и пароль' };
+    }
+    const online = isOnline();
     const passwordHash = await hashPassword(password);
-    const user = await createUser({ username, passwordHash });
-    setSessionUserId(user.id);
-    set({ userId: user.id, username: user.username });
-    await syncCloudSession(username, password, 'register');
+
+    if (isCloudApiConfigured && online) {
+      try {
+        const res = await loginToCloud(normalized, password);
+        setCloudToken(res.token);
+        const user = await upsertUser({
+          id: res.userId,
+          email: res.email,
+          passwordHash,
+          emailVerified: true,
+        });
+        setSessionUserId(user.id);
+        set({
+          userId: user.id,
+          email: user.email,
+          sessionExpired: false,
+        });
+        return { success: true };
+      } catch (e) {
+        return {
+          success: false,
+          error: e instanceof Error ? e.message : 'Не удалось войти',
+        };
+      }
+    }
+
+    // Offline path: verify against cached hash
+    const cached = await getByEmail(normalized);
+    if (!cached || cached.passwordHash !== passwordHash) {
+      return {
+        success: false,
+        error: online
+          ? 'Неверный e-mail или пароль'
+          : 'Нет сети. Вход доступен только с ранее сохранённым паролем.',
+      };
+    }
+    setSessionUserId(cached.id);
+    set({
+      userId: cached.id,
+      email: cached.email,
+      sessionExpired: false,
+    });
     return { success: true };
   },
 
-  login: async (
-    username: string,
-    password: string
-  ): Promise<AuthResult> => {
-    const user = await getByUsername(username);
-    if (!user) {
-      return { success: false, error: 'Invalid username or password' };
+  reauthenticate: async (password) => {
+    const currentEmail = get().email;
+    if (!currentEmail) {
+      return { success: false, error: 'Не найдена активная сессия' };
     }
-    const passwordHash = await hashPassword(password);
-    if (passwordHash !== user.passwordHash) {
-      return { success: false, error: 'Invalid username or password' };
+    return get().login(currentEmail, password);
+  },
+
+  revalidateOnline: async () => {
+    if (!isCloudApiConfigured) return;
+    if (!isOnline()) return;
+    const { userId } = get();
+    if (!userId) return;
+    const token = getCloudToken();
+    if (!token) {
+      set({ sessionExpired: true });
+      return;
     }
-    setSessionUserId(user.id);
-    set({ userId: user.id, username: user.username });
-    await syncCloudSession(username, password, 'login');
-    return { success: true };
+    try {
+      await fetchMe();
+      set({ sessionExpired: false });
+    } catch {
+      clearCloudToken();
+      set({ sessionExpired: true });
+    }
+  },
+
+  setOnlineStatus: (online) => {
+    set({ isOnline: online });
+    if (online) {
+      void get().revalidateOnline();
+    }
   },
 
   logout: () => {
     clearSessionUserId();
     clearCloudToken();
-    set({ userId: null, username: null });
+    set({
+      userId: null,
+      email: null,
+      pending: null,
+      sessionExpired: false,
+    });
   },
 }));

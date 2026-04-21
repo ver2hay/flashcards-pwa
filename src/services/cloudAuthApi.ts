@@ -1,47 +1,82 @@
-const API_BASE_URL = (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env
-  ?.VITE_API_BASE_URL;
+import { buildApiUrl, isCloudApiConfigured } from './lessonsApi';
+import { authHeaders, clearCloudToken } from '../features/cloud/cloudAuth';
 
-export const isCloudApiConfigured = Boolean(API_BASE_URL);
+export type CodePurpose = 'register' | 'reset';
 
-function buildUrl(path: string): string {
-  const base = API_BASE_URL ? API_BASE_URL.replace(/\/$/, '') : '';
-  return `${base}${path}`;
+export interface AuthTokenResponse {
+  token: string;
+  userId: string;
+  email: string;
 }
 
-export async function registerOnCloud(
-  username: string,
-  password: string
-): Promise<{ token: string }> {
+export interface MeResponse {
+  id: string;
+  email: string;
+  emailVerified: boolean;
+}
+
+function ensureConfigured(): void {
   if (!isCloudApiConfigured) {
     throw new Error('Cloud API not configured');
   }
-  const response = await fetch(buildUrl('/auth/register'), {
+}
+
+async function postJson<T>(path: string, body: unknown, auth = false): Promise<T> {
+  ensureConfigured();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  };
+  if (auth) Object.assign(headers, authHeaders());
+  const response = await fetch(buildApiUrl(path), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ username, password }),
+    headers,
+    body: JSON.stringify(body),
   });
   if (!response.ok) {
+    if (response.status === 401) clearCloudToken();
     const err = await response.json().catch(() => ({}));
-    throw new Error((err as { error?: string }).error || `Register failed: ${response.status}`);
+    throw new Error(
+      (err as { error?: string }).error || `Запрос завершился с кодом ${response.status}`
+    );
   }
-  return response.json() as Promise<{ token: string }>;
+  return response.json() as Promise<T>;
+}
+
+export async function requestEmailCode(
+  email: string,
+  password: string,
+  purpose: CodePurpose
+): Promise<void> {
+  await postJson('/auth/request-code', { email, password, purpose });
+}
+
+export async function verifyEmailCode(
+  email: string,
+  code: string,
+  purpose: CodePurpose
+): Promise<AuthTokenResponse> {
+  return postJson<AuthTokenResponse>('/auth/verify-code', { email, code, purpose });
 }
 
 export async function loginToCloud(
-  username: string,
+  email: string,
   password: string
-): Promise<{ token: string }> {
-  if (!isCloudApiConfigured) {
-    throw new Error('Cloud API not configured');
-  }
-  const response = await fetch(buildUrl('/auth/login'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ username, password }),
+): Promise<AuthTokenResponse> {
+  return postJson<AuthTokenResponse>('/auth/login', { email, password });
+}
+
+export async function fetchMe(): Promise<MeResponse> {
+  ensureConfigured();
+  const response = await fetch(buildApiUrl('/auth/me'), {
+    headers: { Accept: 'application/json', ...authHeaders() },
   });
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error((err as { error?: string }).error || `Login failed: ${response.status}`);
+  if (response.status === 401) {
+    clearCloudToken();
+    throw new Error('Unauthorized');
   }
-  return response.json() as Promise<{ token: string }>;
+  if (!response.ok) {
+    throw new Error(`Auth check failed: ${response.status}`);
+  }
+  return response.json() as Promise<MeResponse>;
 }
