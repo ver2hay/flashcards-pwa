@@ -4,6 +4,7 @@ import type {
   Folder,
   Lesson,
   Card,
+  LessonFile,
   TrainingSession,
   TrainingAnswer,
 } from './types';
@@ -19,6 +20,7 @@ export class FlashcardsDB extends Dexie {
   cards!: EntityTable<Card, 'id'>;
   trainingSessions!: EntityTable<TrainingSession, 'id'>;
   trainingAnswers!: EntityTable<TrainingAnswer, 'id'>;
+  lessonFiles!: EntityTable<LessonFile, 'id'>;
 
   constructor() {
     super('FlashcardsDB');
@@ -58,6 +60,16 @@ export class FlashcardsDB extends Dexie {
             }
           })
       );
+
+    this.version(4).stores({
+      users: 'id, &username',
+      folders: 'id, userId, createdAt, updatedAt',
+      lessons: 'id, userId, updatedAt, source',
+      cards: 'id, userId, folderId, createdAt',
+      trainingSessions: 'id, userId, startedAt, finishedAt',
+      trainingAnswers: 'id, sessionId, cardId',
+      lessonFiles: 'id, userId, lessonId, createdAt',
+    });
   }
 }
 

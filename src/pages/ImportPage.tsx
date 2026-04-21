@@ -21,10 +21,12 @@ import {
   createLesson,
   bulkCreateCards,
   bulkUpsertCards,
+  upsertLessonFiles,
 } from '../db';
 import type { Lesson } from '../db';
 import { parseImportFile } from '../utils/importParser';
 import { createLessonCards } from '../services/lessonsApi';
+import { uploadLessonFile } from '../services/filesApi';
 
 const TEMPLATE_CSV = `RU|KZ
 Коричневый|қоңыр
@@ -36,9 +38,9 @@ const LESSON_NAME_MAX_LENGTH = 60;
 
 function validateLessonName(name: string): string | null {
   const trimmed = name.trim();
-  if (!trimmed) return 'Lesson name is required';
+  if (!trimmed) return 'Введите название папки';
   if (trimmed.length > LESSON_NAME_MAX_LENGTH) {
-    return `Max ${LESSON_NAME_MAX_LENGTH} characters`;
+    return `Не больше ${LESSON_NAME_MAX_LENGTH} символов`;
   }
   return null;
 }
@@ -113,7 +115,7 @@ export function ImportPage() {
     setParseError(null);
 
     if (!lessonId.trim()) {
-      setLessonError('Please select a lesson');
+      setLessonError('Выберите папку');
       return;
     }
 
@@ -122,7 +124,7 @@ export function ImportPage() {
       const rows = await parseImportFile(file);
       console.log('[Import] parsed rows', rows.length);
       if (rows.length === 0) {
-        setParseError('No valid rows found. Use format RU|KZ (or ; or ,). One pair per line.');
+        setParseError('Нет строк для импорта. Формат: RU|KZ, по одной паре в строке.');
         setUploading(false);
         return;
       }
@@ -158,6 +160,20 @@ export function ImportPage() {
       });
 
       if (targetLessonSource === 'cloud') {
+        console.log('[Import] uploading source file to cloud');
+        const uploaded = await uploadLessonFile(targetLessonId, file);
+        await upsertLessonFiles([
+          {
+            id: uploaded.id,
+            userId,
+            lessonId: targetLessonId,
+            name: uploaded.name,
+            mimeType: uploaded.mimeType,
+            size: uploaded.size,
+            createdAt: parseEpoch(uploaded.createdAt) ?? Date.now(),
+            blob: file,
+          },
+        ]);
         console.log('[Import] uploading cards to cloud');
         const remoteCards = await createLessonCards(
           targetLessonId,
@@ -203,24 +219,28 @@ export function ImportPage() {
 
   return (
     <Box>
-      <Typography variant="h5" component="h1" gutterBottom>
-        Import words
+      <Typography variant="h5" component="h1" sx={{ fontWeight: 800, mb: 1 }}>
+        Импорт слов
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontWeight: 600 }}>
+        Для облачных папок файл сначала загружается на сервер, затем карточки — на других устройствах
+        подтянутся при синхронизации.
       </Typography>
 
       <FormControl fullWidth sx={{ mt: 2, mb: 2 }} error={showLessonError}>
-        <InputLabel id="import-lesson-label">Lesson</InputLabel>
+        <InputLabel id="import-lesson-label">Папка</InputLabel>
         <Select
           labelId="import-lesson-label"
           id="import-lesson"
           value={lessonId}
-          label="Lesson"
+          label="Папка"
           onChange={(e) => handleLessonChange(e.target.value)}
         >
           <MenuItem value="">
-            <em>Select a lesson</em>
+            <em>Выберите папку</em>
           </MenuItem>
           <MenuItem value={NEW_LESSON_VALUE}>
-            <em>Create new lesson</em>
+            <em>Создать новую папку</em>
           </MenuItem>
           {lessons.map((lesson) => (
             <MenuItem key={lesson.id} value={lesson.id}>
@@ -235,7 +255,7 @@ export function ImportPage() {
 
       {isCreatingLesson && (
         <TextField
-          label="Lesson name"
+          label="Название папки"
           value={newLessonName}
           onChange={(e) => {
             setNewLessonName(e.target.value);
@@ -255,17 +275,17 @@ export function ImportPage() {
           startIcon={<DownloadIcon />}
           onClick={downloadTemplate}
         >
-          Download template
+          Скачать шаблон
         </Button>
       </Box>
 
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        Format: RU|KZ (Russian|Kazakh). Delimiter: | or ; or , . Optional header row RU|KZ. Slashes in values are kept (e.g. қызғылт/сары).
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 600 }}>
+        Формат: RU|KZ. Разделитель: | или ; или ,. Слеши в словах сохраняются (например қызғылт/сары).
       </Typography>
 
       <Box sx={{ mb: 2 }}>
         <Button variant="outlined" component="label" fullWidth>
-          Choose file (.csv or .xlsx)
+          Выбрать файл (.csv или .xlsx)
           <input
             type="file"
             hidden
@@ -293,7 +313,7 @@ export function ImportPage() {
         disabled={!canUpload}
         fullWidth
       >
-        {uploading ? 'Importing…' : 'Upload'}
+        {uploading ? 'Импорт…' : 'Загрузить'}
       </Button>
     </Box>
   );

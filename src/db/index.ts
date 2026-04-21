@@ -8,6 +8,7 @@ export type {
   Lesson,
   LessonSource,
   Card,
+  LessonFile,
   TrainingSession,
   TrainingAnswer,
   TrainingMode,
@@ -40,6 +41,14 @@ export {
   bulkUpsertLessons,
   deleteLessons,
 } from './repositories/lessons';
+
+// Lesson files (cloud attachments)
+export {
+  getByLessonId as getLessonFilesByLessonId,
+  getByUserId as getLessonFilesByUserId,
+  upsertLessonFiles,
+  deleteByLessonIds as deleteLessonFilesByLessonIds,
+} from './repositories/lessonFiles';
 
 // Cards repository
 export {

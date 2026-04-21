@@ -38,11 +38,16 @@ export async function bulkUpsertLessons(lessons: Lesson[]): Promise<void> {
 
 export async function deleteLessons(userId: string, ids: string[]): Promise<void> {
   if (ids.length === 0) return;
-  await db.transaction('rw', db.lessons, db.cards, async () => {
+  await db.transaction('rw', db.lessons, db.cards, db.lessonFiles, async () => {
     await db.cards
       .where('folderId')
       .anyOf(ids)
       .and((card) => card.userId === userId)
+      .delete();
+    await db.lessonFiles
+      .where('lessonId')
+      .anyOf(ids)
+      .and((f) => f.userId === userId)
       .delete();
     await db.lessons
       .where('id')

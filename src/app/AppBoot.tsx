@@ -32,12 +32,33 @@ export function AppBoot() {
         sx={{
           minHeight: '100vh',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
+          gap: 2,
+          background:
+            'linear-gradient(180deg, #E8F7FF 0%, #F7FFF2 40%, #FFFDF5 100%)',
         }}
       >
-        <Typography variant="h6" color="text.secondary">
-          Loading...
+        <Box
+          sx={{
+            width: 64,
+            height: 64,
+            borderRadius: 3,
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 800,
+            fontSize: '1.25rem',
+            boxShadow: '0 6px 0 #46A302',
+          }}
+        >
+          FC
+        </Box>
+        <Typography variant="h6" sx={{ fontWeight: 800 }}>
+          Загрузка…
         </Typography>
       </Box>
     );

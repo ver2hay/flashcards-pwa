@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
+  Card,
+  CardActionArea,
+  CardContent,
   Chip,
   Dialog,
   DialogActions,
@@ -10,14 +13,16 @@ import {
   DialogTitle,
   FormControlLabel,
   FormHelperText,
-  List,
-  ListItem,
-  ListItemText,
+  LinearProgress,
+  Stack,
   Switch,
   TextField,
   Typography,
 } from '@mui/material';
-import SchoolIcon from '@mui/icons-material/School';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
+import CloudDoneRoundedIcon from '@mui/icons-material/CloudDoneRounded';
+import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import { useAuthStore } from '../features/auth/authStore';
 import {
   getLessonsByUserId,
@@ -32,9 +37,9 @@ const LESSON_NAME_MAX_LENGTH = 60;
 
 function validateLessonName(name: string): string | null {
   const trimmed = name.trim();
-  if (!trimmed) return 'Lesson name is required';
+  if (!trimmed) return 'Введите название папки';
   if (trimmed.length > LESSON_NAME_MAX_LENGTH) {
-    return `Max ${LESSON_NAME_MAX_LENGTH} characters`;
+    return `Не больше ${LESSON_NAME_MAX_LENGTH} символов`;
   }
   return null;
 }
@@ -65,14 +70,6 @@ export function FoldersPage() {
       getLessonsByUserId(userId),
       getCardsByUserId(userId),
     ]);
-    console.log('[Lessons] loaded', lessonList.length);
-    if (lessonList.length === 0) {
-      console.warn('[Lessons] No lessons found in lessons table', {
-        table: 'lessons',
-        lessonCount: lessonList.length,
-        cardCount: cards.length,
-      });
-    }
     setLessons(lessonList);
     const counts: Record<string, number> = {};
     for (const card of cards) {
@@ -99,15 +96,15 @@ export function FoldersPage() {
   const hasLessons = lessons.length > 0;
   const cloudAvailable = isOnline && isCloudApiConfigured;
   const cloudDisabledReason = !isOnline
-    ? 'Cloud unavailable while offline'
+    ? 'Нет сети — облако недоступно'
     : !isCloudApiConfigured
-      ? 'Cloud API not configured'
+      ? 'Не задан VITE_API_BASE_URL'
       : null;
   const onlineHelperText = cloudDisabledReason
     ? cloudDisabledReason
     : createOnline
-      ? 'This lesson will be uploaded to the cloud and available on other devices after sync.'
-      : 'This lesson will stay only on this device.';
+      ? 'Папка и карточки сохранятся на сервере и подтянутся на другие устройства после синхронизации.'
+      : 'Только на этом устройстве (работает оффлайн).';
 
   const handleCreateOpen = () => {
     setCreateName('');
@@ -131,13 +128,11 @@ export function FoldersPage() {
     }
 
     const name = createName.trim();
-    const mode = createOnline ? 'cloud' : 'local';
-    console.log('[Lesson Create] mode', mode);
 
     try {
       if (createOnline) {
         if (!cloudAvailable) {
-          setCreateError(cloudDisabledReason ?? 'Cloud unavailable');
+          setCreateError(cloudDisabledReason ?? 'Облако недоступно');
           return;
         }
         const payload = {
@@ -146,7 +141,6 @@ export function FoldersPage() {
           updatedAt: Date.now(),
         };
         const response = await createLessonCloud(payload);
-        console.log('[Lesson Create] cloud response', response);
         const createdAt = parseEpoch(response.createdAt) ?? Date.now();
         const updatedAt = parseEpoch(response.updatedAt) ?? createdAt;
         await bulkUpsertLessons([
@@ -159,92 +153,144 @@ export function FoldersPage() {
             source: 'cloud',
           },
         ]);
-        console.log('[Lesson Create] dexie insert', response.id);
       } else {
-        const lesson = await createLessonLocal({
+        await createLessonLocal({
           userId,
           name,
           source: 'local',
         });
-        console.log('[Lesson Create] dexie insert', lesson.id);
       }
       handleCreateClose();
       await loadData();
-      const refreshed = await getLessonsByUserId(userId);
-      console.log('[Lesson Create] lessons refreshed', refreshed.length);
     } catch (error) {
-      console.error('[Lesson Create] failed', error);
-      setCreateError(
-        'Failed to create cloud lesson. You can try again or save locally.'
-      );
+      console.error('[Folder Create] failed', error);
+      setCreateError('Не удалось создать облачную папку. Попробуйте ещё раз или создайте локально.');
     }
   };
 
-  return (
-    <Box>
-      <Typography variant="h5" component="h1" gutterBottom>
-        Lessons
-      </Typography>
+  const totalCards = Object.values(cardCountByLessonId).reduce((a, b) => a + b, 0);
 
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-        <Button variant="contained" onClick={handleCreateOpen}>
-          Create lesson
-        </Button>
+  return (
+    <Stack spacing={2.5}>
+      <Box>
+        <Typography variant="h5" component="h1" sx={{ fontWeight: 800, mb: 0.5 }}>
+          Мои папки
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+          Выбери папку для тренировки. Облачные папки синхронизируются между устройствами.
+        </Typography>
+      </Box>
+
+      <Card variant="outlined" sx={{ bgcolor: 'rgba(28,176,246,0.08)', borderColor: 'secondary.light' }}>
+        <CardContent sx={{ py: 2 }}>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+            <SchoolRoundedIcon color="secondary" />
+            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+              Прогресс
+            </Typography>
+          </Stack>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 600 }}>
+            Всего карточек: {totalCards}
+          </Typography>
+          <LinearProgress
+            variant="determinate"
+            value={hasLessons ? Math.min(100, totalCards * 3) : 0}
+            sx={{
+              height: 12,
+              borderRadius: 99,
+              bgcolor: 'rgba(88,204,2,0.2)',
+              '& .MuiLinearProgress-bar': { borderRadius: 99 },
+            }}
+          />
+        </CardContent>
+      </Card>
+
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
         <Button
           variant="contained"
-          startIcon={<SchoolIcon />}
+          color="primary"
+          size="large"
+          fullWidth
+          startIcon={<AddRoundedIcon />}
+          onClick={handleCreateOpen}
+        >
+          Новая папка
+        </Button>
+        <Button
+          variant="outlined"
+          color="primary"
+          size="large"
+          fullWidth
+          startIcon={<SchoolRoundedIcon />}
           onClick={() => navigate('/train')}
           disabled={!hasLessons}
         >
-          Start training
+          Тренировка
         </Button>
-      </Box>
+      </Stack>
 
-      {lessons.length === 0 ? (
-        <Typography color="text.secondary" sx={{ py: 4 }}>
-          No lessons cached yet. Connect online to sync.
-        </Typography>
+      {!hasLessons ? (
+        <Card>
+          <CardContent>
+            <Stack alignItems="center" spacing={1} sx={{ py: 3 }}>
+              <FolderRoundedIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
+              <Typography color="text.secondary" align="center" sx={{ fontWeight: 700 }}>
+                Пока нет папок. Создай первую — или подключись к интернету для синхронизации с облаком.
+              </Typography>
+            </Stack>
+          </CardContent>
+        </Card>
       ) : (
-        <List disablePadding>
-          {lessons.map((lesson) => (
-            <ListItem
-              key={lesson.id}
-              secondaryAction={
-                <Chip
-                  size="small"
-                  label={lesson.source === 'local' ? 'Local' : 'Cloud'}
-                  color={lesson.source === 'local' ? 'default' : 'success'}
-                  variant="outlined"
-                />
-              }
-              sx={{
-                py: 1.5,
-                px: 0,
-                borderBottom: '1px solid',
-                borderColor: 'divider',
-                alignItems: 'center',
-              }}
-            >
-              <ListItemText
-                primary={lesson.name}
-                secondary={
-                  cardCountByLessonId[lesson.id] !== undefined
-                    ? `${cardCountByLessonId[lesson.id]} card${cardCountByLessonId[lesson.id] === 1 ? '' : 's'}`
-                    : undefined
-                }
-                primaryTypographyProps={{ variant: 'body1' }}
-              />
-            </ListItem>
-          ))}
-        </List>
+        <Stack spacing={1.5}>
+          {lessons.map((lesson) => {
+            const n = cardCountByLessonId[lesson.id] ?? 0;
+            const isCloud = lesson.source === 'cloud';
+            return (
+              <Card key={lesson.id}>
+                <CardActionArea onClick={() => navigate('/import')}>
+                  <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
+                      sx={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 2,
+                        bgcolor: isCloud ? 'primary.light' : 'grey.300',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: isCloud ? 'primary.dark' : 'grey.700',
+                      }}
+                    >
+                      {isCloud ? <CloudDoneRoundedIcon /> : <FolderRoundedIcon />}
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 800 }} noWrap>
+                        {lesson.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+                        {n} {n === 1 ? 'карточка' : n < 5 ? 'карточки' : 'карточек'}
+                      </Typography>
+                    </Box>
+                    <Chip
+                      size="small"
+                      label={isCloud ? 'Облако' : 'Локально'}
+                      color={isCloud ? 'success' : 'default'}
+                      sx={{ fontWeight: 800 }}
+                    />
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            );
+          })}
+        </Stack>
       )}
 
       <Dialog open={createOpen} onClose={handleCreateClose} fullWidth maxWidth="xs">
-        <DialogTitle>Create lesson</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800 }}>Новая папка</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
-            label="Lesson name"
+            label="Название"
             value={createName}
             onChange={(e) => {
               setCreateName(e.target.value);
@@ -256,26 +302,26 @@ export function FoldersPage() {
             margin="normal"
             inputProps={{ maxLength: LESSON_NAME_MAX_LENGTH }}
           />
-
           <FormControlLabel
             control={
               <Switch
                 checked={createOnline}
                 onChange={(e) => setCreateOnline(e.target.checked)}
                 disabled={!!cloudDisabledReason}
+                color="primary"
               />
             }
-            label="Online lesson"
+            label="Сохранить в облаке"
           />
           <FormHelperText>{onlineHelperText}</FormHelperText>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCreateClose}>Cancel</Button>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={handleCreateClose}>Отмена</Button>
           <Button variant="contained" onClick={handleCreateSubmit}>
-            Create
+            Создать
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Stack>
   );
 }

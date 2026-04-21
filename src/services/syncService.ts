@@ -1,11 +1,15 @@
-import { fetchLessonCards, fetchLessons } from './lessonsApi';
-import type { Lesson, Card } from '../db';
+import { fetchLessonCards, fetchLessons, isCloudApiConfigured } from './lessonsApi';
+import { listLessonFiles, downloadLessonFile } from './filesApi';
+import type { Lesson, Card, LessonFile } from '../db';
 import {
   getLessonsByUserId,
   bulkUpsertLessons,
   deleteLessons,
   replaceCardsForLesson,
+  getLessonFilesByLessonId,
+  upsertLessonFiles,
 } from '../db';
+import { getCloudToken } from '../features/cloud/cloudAuth';
 
 function parseEpoch(value?: string | number): number | undefined {
   if (value === undefined || value === null) return undefined;
@@ -15,7 +19,12 @@ function parseEpoch(value?: string | number): number | undefined {
 }
 
 function normalizeLesson(
-  lesson: { id: string; name: string; createdAt?: string | number; updatedAt?: string | number },
+  lesson: {
+    id: string;
+    name: string;
+    createdAt?: string | number;
+    updatedAt?: string | number;
+  },
   userId: string
 ): Lesson {
   const createdAt = parseEpoch(lesson.createdAt);
@@ -48,8 +57,52 @@ function normalizeCard(
   };
 }
 
+export async function syncLessonFiles(userId: string): Promise<void> {
+  if (!isCloudApiConfigured || !getCloudToken()) return;
+  const lessons = await getLessonsByUserId(userId);
+  const cloudLessons = lessons.filter((l) => l.source === 'cloud');
+  for (const lesson of cloudLessons) {
+    let remote: Awaited<ReturnType<typeof listLessonFiles>>;
+    try {
+      remote = await listLessonFiles(lesson.id);
+    } catch (e) {
+      console.warn('[Sync] lesson files list failed', lesson.id, e);
+      continue;
+    }
+    const local = await getLessonFilesByLessonId(lesson.id);
+    const byId = new Map(local.map((f) => [f.id, f]));
+    for (const r of remote) {
+      const existing = byId.get(r.id);
+      if (existing?.blob && existing.size === r.size) continue;
+      try {
+        const blob = await downloadLessonFile(lesson.id, r.id);
+        const row: LessonFile = {
+          id: r.id,
+          userId,
+          lessonId: lesson.id,
+          name: r.name,
+          mimeType: r.mimeType,
+          size: r.size,
+          createdAt: parseEpoch(r.createdAt) ?? Date.now(),
+          blob,
+        };
+        await upsertLessonFiles([row]);
+        console.log('[Sync] file cached', r.id, r.name);
+      } catch (e) {
+        console.warn('[Sync] file download failed', r.id, e);
+      }
+    }
+  }
+}
+
 export async function syncLessons(userId: string): Promise<void> {
-  const remoteLessons = await fetchLessons();
+  let remoteLessons: Awaited<ReturnType<typeof fetchLessons>>;
+  try {
+    remoteLessons = await fetchLessons();
+  } catch (e) {
+    console.warn('[Sync] remote lessons failed (offline or auth)', e);
+    return;
+  }
   console.log('[Sync] remote lessons', remoteLessons.length);
   const normalized = remoteLessons.map((lesson) => normalizeLesson(lesson, userId));
 
@@ -61,7 +114,7 @@ export async function syncLessons(userId: string): Promise<void> {
   console.log('[Sync] lessons upserted', normalized.length);
 
   const staleLessonIds = localLessons
-    .filter((lesson) => !remoteIds.has(lesson.id))
+    .filter((lesson) => lesson.source === 'cloud' && !remoteIds.has(lesson.id))
     .map((lesson) => lesson.id);
   if (staleLessonIds.length > 0) {
     await deleteLessons(userId, staleLessonIds);
@@ -73,7 +126,17 @@ export async function syncLessons(userId: string): Promise<void> {
   });
 
   for (const lesson of lessonsToSyncCards) {
-    await syncCards(userId, lesson.id);
+    try {
+      await syncCards(userId, lesson.id);
+    } catch (e) {
+      console.warn('[Sync] cards failed', lesson.id, e);
+    }
+  }
+
+  try {
+    await syncLessonFiles(userId);
+  } catch (e) {
+    console.warn('[Sync] lesson files failed', e);
   }
 }
 

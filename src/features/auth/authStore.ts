@@ -6,6 +6,9 @@ import {
   setSessionUserId,
   clearSessionUserId,
 } from './session';
+import { setCloudToken, clearCloudToken } from '../cloud/cloudAuth';
+import { isCloudApiConfigured } from '../../services/lessonsApi';
+import { loginToCloud, registerOnCloud } from '../../services/cloudAuthApi';
 
 export type AuthError = { success: false; error: string };
 export type AuthSuccess = { success: true };
@@ -22,6 +25,32 @@ interface AuthState {
   ) => Promise<AuthResult>;
   login: (username: string, password: string) => Promise<AuthResult>;
   logout: () => void;
+}
+
+async function syncCloudSession(username: string, password: string, mode: 'login' | 'register') {
+  if (
+    !isCloudApiConfigured ||
+    (typeof navigator !== 'undefined' && !navigator.onLine)
+  ) {
+    return;
+  }
+  try {
+    if (mode === 'register') {
+      try {
+        const { token } = await registerOnCloud(username, password);
+        setCloudToken(token);
+        return;
+      } catch {
+        const { token } = await loginToCloud(username, password);
+        setCloudToken(token);
+        return;
+      }
+    }
+    const { token } = await loginToCloud(username, password);
+    setCloudToken(token);
+  } catch (e) {
+    console.warn('[Auth] cloud session failed', mode, e);
+  }
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -60,6 +89,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const user = await createUser({ username, passwordHash });
     setSessionUserId(user.id);
     set({ userId: user.id, username: user.username });
+    await syncCloudSession(username, password, 'register');
     return { success: true };
   },
 
@@ -77,11 +107,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     setSessionUserId(user.id);
     set({ userId: user.id, username: user.username });
+    await syncCloudSession(username, password, 'login');
     return { success: true };
   },
 
   logout: () => {
     clearSessionUserId();
+    clearCloudToken();
     set({ userId: null, username: null });
   },
 }));

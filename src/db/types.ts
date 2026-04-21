@@ -38,6 +38,19 @@ export interface Card {
   createdAt: number;
 }
 
+/** Uploaded lesson attachment (synced from cloud, cached offline). */
+export interface LessonFile {
+  id: string;
+  userId: string;
+  lessonId: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  createdAt: number;
+  /** Filled after download from cloud for offline access */
+  blob?: Blob;
+}
+
 export type TrainingMode = 'exact' | 'multiple_choice' | 'learn' | 'review' | 'test';
 
 export interface TrainingSession {

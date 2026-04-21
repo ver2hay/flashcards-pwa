@@ -1,17 +1,27 @@
+import { authHeaders } from '../features/cloud/cloudAuth';
+
 const API_BASE_URL = (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env
   ?.VITE_API_BASE_URL;
 const USE_MOCKS = !API_BASE_URL;
 export const isCloudApiConfigured = Boolean(API_BASE_URL);
 
-function buildUrl(path: string): string {
+export function buildApiUrl(path: string): string {
   const base = API_BASE_URL ? API_BASE_URL.replace(/\/$/, '') : '';
   return `${base}${path}`;
 }
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const url = buildUrl(path);
+  const url = buildApiUrl(path);
   const headers = new Headers(init?.headers);
   headers.set('Accept', 'application/json');
+  if (!USE_MOCKS) {
+    const extra = authHeaders() as Record<string, string>;
+    if (extra && typeof extra === 'object') {
+      Object.entries(extra).forEach(([k, v]) => {
+        if (typeof v === 'string') headers.set(k, v);
+      });
+    }
+  }
   if (init?.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
@@ -68,7 +78,12 @@ export async function createLesson(
 
 export async function createLessonCards(
   lessonId: string,
-  cards: { frontText: string; backText: string; createdAt?: string | number; updatedAt?: string | number }[]
+  cards: {
+    frontText: string;
+    backText: string;
+    createdAt?: string | number;
+    updatedAt?: string | number;
+  }[]
 ): Promise<LessonCardApiResponse[]> {
   if (!isCloudApiConfigured) {
     throw new Error('Cloud API not configured');
