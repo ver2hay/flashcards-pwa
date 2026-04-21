@@ -147,11 +147,13 @@ app.post('/auth/login', async (req, res) => {
   res.json({ token, userId: user.id, username: user.username });
 });
 
-app.get('/lessons', authMiddleware, async (req, res) => {
+// --- Shared library: lessons/cards/files are visible to every authenticated user.
+// `createdBy` is kept for auditing only and does NOT affect visibility.
+
+app.get('/lessons', authMiddleware, async (_req, res) => {
   const db = await readDb();
-  const list = db.lessons.filter((l) => l.userId === req.userId);
-  console.log('[API] GET /lessons ->', list.length);
-  res.json(list);
+  console.log('[API] GET /lessons (shared) ->', db.lessons.length);
+  res.json(db.lessons);
 });
 
 app.post('/lessons', authMiddleware, async (req, res) => {
@@ -164,7 +166,7 @@ app.post('/lessons', authMiddleware, async (req, res) => {
   const now = nowIso();
   const lesson = {
     id: crypto.randomUUID(),
-    userId: req.userId,
+    createdBy: req.userId,
     name: name.trim(),
     source: 'cloud',
     createdAt: createdAt ?? now,
@@ -172,19 +174,19 @@ app.post('/lessons', authMiddleware, async (req, res) => {
   };
   db.lessons.push(lesson);
   await writeDb(db);
-  console.log('[API] POST /lessons ->', lesson.id);
+  console.log('[API] POST /lessons ->', lesson.id, 'by', req.userId);
   res.status(201).json(lesson);
 });
 
 app.get('/lessons/:lessonId/cards', authMiddleware, async (req, res) => {
   const { lessonId } = req.params;
   const db = await readDb();
-  const lesson = db.lessons.find((l) => l.id === lessonId && l.userId === req.userId);
+  const lesson = db.lessons.find((l) => l.id === lessonId);
   if (!lesson) {
     res.status(404).json({ error: 'lesson not found' });
     return;
   }
-  const cards = db.cards.filter((c) => c.lessonId === lessonId && c.userId === req.userId);
+  const cards = db.cards.filter((c) => c.lessonId === lessonId);
   console.log('[API] GET /lessons/%s/cards -> %d', lessonId, cards.length);
   res.json(cards);
 });
@@ -197,7 +199,7 @@ app.post('/lessons/:lessonId/cards', authMiddleware, async (req, res) => {
     return;
   }
   const db = await readDb();
-  const lesson = db.lessons.find((l) => l.id === lessonId && l.userId === req.userId);
+  const lesson = db.lessons.find((l) => l.id === lessonId);
   if (!lesson) {
     res.status(404).json({ error: 'lesson not found' });
     return;
@@ -208,7 +210,7 @@ app.post('/lessons/:lessonId/cards', authMiddleware, async (req, res) => {
       if (!card || !card.frontText || !card.backText) return null;
       return {
         id: crypto.randomUUID(),
-        userId: req.userId,
+        createdBy: req.userId,
         lessonId,
         frontText: String(card.frontText),
         backText: String(card.backText),
@@ -227,12 +229,12 @@ app.post('/lessons/:lessonId/cards', authMiddleware, async (req, res) => {
 app.get('/lessons/:lessonId/files', authMiddleware, async (req, res) => {
   const { lessonId } = req.params;
   const db = await readDb();
-  const lesson = db.lessons.find((l) => l.id === lessonId && l.userId === req.userId);
+  const lesson = db.lessons.find((l) => l.id === lessonId);
   if (!lesson) {
     res.status(404).json({ error: 'lesson not found' });
     return;
   }
-  const files = db.files.filter((f) => f.lessonId === lessonId && f.userId === req.userId);
+  const files = db.files.filter((f) => f.lessonId === lessonId);
   res.json(
     files.map((f) => ({
       id: f.id,
@@ -248,7 +250,7 @@ app.get('/lessons/:lessonId/files', authMiddleware, async (req, res) => {
 app.post('/lessons/:lessonId/files', authMiddleware, upload.single('file'), async (req, res) => {
   const { lessonId } = req.params;
   const db = await readDb();
-  const lesson = db.lessons.find((l) => l.id === lessonId && l.userId === req.userId);
+  const lesson = db.lessons.find((l) => l.id === lessonId);
   if (!lesson) {
     if (req.file) await fs.unlink(req.file.path).catch(() => {});
     res.status(404).json({ error: 'lesson not found' });
@@ -262,7 +264,7 @@ app.post('/lessons/:lessonId/files', authMiddleware, upload.single('file'), asyn
   const now = nowIso();
   const record = {
     id,
-    userId: req.userId,
+    createdBy: req.userId,
     lessonId,
     name: req.file.originalname,
     mimeType: req.file.mimetype || 'application/octet-stream',
@@ -287,12 +289,7 @@ app.post('/lessons/:lessonId/files', authMiddleware, upload.single('file'), asyn
 app.get('/lessons/:lessonId/files/:fileId/download', authMiddleware, async (req, res) => {
   const { lessonId, fileId } = req.params;
   const db = await readDb();
-  const file = db.files.find(
-    (f) =>
-      f.id === fileId &&
-      f.lessonId === lessonId &&
-      f.userId === req.userId
-  );
+  const file = db.files.find((f) => f.id === fileId && f.lessonId === lessonId);
   if (!file) {
     res.status(404).json({ error: 'file not found' });
     return;
