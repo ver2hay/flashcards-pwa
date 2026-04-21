@@ -31,5 +31,18 @@ docker run -d --name "$NAME" --restart unless-stopped --network "$NET" \
   -e "TZ=Europe/Moscow" \
   "$IMAGE"
 
+# Postfix needs a few seconds after supervisord before smtp(587) accepts connections;
+# otherwise the API may get ECONNREFUSED on the first e-mail.
+echo "Waiting for Postfix to accept SMTP…"
+i=0
+while [ "$i" -lt 30 ]; do
+  if docker exec "$NAME" sh -c 'nc -z 127.0.0.1 587' 2>/dev/null; then
+    break
+  fi
+  i=$((i + 1))
+  sleep 1
+done
+sleep 2
+
 echo "OK. Logs: docker logs -f $NAME"
 docker logs --tail 25 "$NAME" || true
