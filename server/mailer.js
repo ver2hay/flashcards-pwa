@@ -9,9 +9,21 @@ const SMTP_SECURE = process.env.SMTP_SECURE === 'true';
 const SMTP_TLS_INSECURE = process.env.SMTP_TLS_INSECURE === 'true';
 const MAIL_FROM = process.env.MAIL_FROM || SMTP_USER || 'no-reply@flashcards.local';
 
+/** Brevo (ex-Sendinblue) — reliable delivery; free tier at app.brevo.com */
+const BREVO_SMTP_KEY = process.env.BREVO_SMTP_KEY;
+const BREVO_SMTP_LOGIN = process.env.BREVO_SMTP_LOGIN;
+
 let transporter;
 
-if (SMTP_HOST) {
+if (BREVO_SMTP_KEY && BREVO_SMTP_LOGIN) {
+  transporter = nodemailer.createTransport({
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    secure: false,
+    auth: { user: BREVO_SMTP_LOGIN, pass: BREVO_SMTP_KEY },
+  });
+  console.log('[Mail] SMTP transport -> Brevo (smtp-relay.brevo.com:587)', BREVO_SMTP_LOGIN);
+} else if (SMTP_HOST) {
   const tls = SMTP_TLS_INSECURE
     ? { rejectUnauthorized: false, minVersion: 'TLSv1.2' }
     : undefined;
@@ -22,7 +34,12 @@ if (SMTP_HOST) {
     auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
     tls,
   });
-  console.log('[Mail] SMTP transport ->', SMTP_HOST, SMTP_PORT, SMTP_TLS_INSECURE ? 'tls:allow-self-signed' : '');
+  console.log(
+    '[Mail] SMTP transport ->',
+    SMTP_HOST,
+    SMTP_PORT,
+    SMTP_TLS_INSECURE ? 'tls:allow-self-signed' : ''
+  );
 } else {
   transporter = nodemailer.createTransport({
     jsonTransport: true,
