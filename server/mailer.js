@@ -49,7 +49,20 @@ if (BREVO_SMTP_KEY && BREVO_SMTP_LOGIN) {
   );
 }
 
+/**
+ * @throws {Error} with `code: 'MAIL_CONFIG'` if Gmail is selected but no app password set
+ */
 export async function sendCode(to, code, purpose) {
+  const smtpPass = process.env.SMTP_PASS?.trim() ?? '';
+  if (
+    SMTP_HOST === 'smtp.gmail.com' &&
+    smtpPass.length < 8
+  ) {
+    const e = new Error('SMTP_PASS missing: set Google App Password in api.env');
+    e.code = 'MAIL_CONFIG';
+    throw e;
+  }
+
   const subject =
     purpose === 'reset'
       ? 'Сброс пароля — код подтверждения'

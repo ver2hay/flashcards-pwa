@@ -188,6 +188,13 @@ app.post('/auth/request-code', async (req, res) => {
     await sendCode(normalized, code, kind);
   } catch (e) {
     console.error('[Mail] send failed', e);
+    if (e && e.code === 'MAIL_CONFIG') {
+      res.status(503).json({
+        error:
+          'Сервер не настроен: для Gmail укажите в api.env пароль приложения (Google App Password) и перезапустите API. Настройка: myaccount.google.com → Безопасность → Пароли приложений.',
+      });
+      return;
+    }
     res.status(502).json({ error: 'Не удалось отправить письмо. Попробуйте позже.' });
     return;
   }
