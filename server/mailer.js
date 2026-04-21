@@ -5,18 +5,24 @@ const SMTP_PORT = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_SECURE = process.env.SMTP_SECURE === 'true';
+/** Internal Docker Postfix (587 + STARTTLS) often uses a cert that does not match the container hostname. */
+const SMTP_TLS_INSECURE = process.env.SMTP_TLS_INSECURE === 'true';
 const MAIL_FROM = process.env.MAIL_FROM || SMTP_USER || 'no-reply@flashcards.local';
 
 let transporter;
 
 if (SMTP_HOST) {
+  const tls = SMTP_TLS_INSECURE
+    ? { rejectUnauthorized: false, minVersion: 'TLSv1.2' }
+    : undefined;
   transporter = nodemailer.createTransport({
     host: SMTP_HOST,
     port: SMTP_PORT,
     secure: SMTP_SECURE || SMTP_PORT === 465,
     auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
+    tls,
   });
-  console.log('[Mail] SMTP transport ->', SMTP_HOST, SMTP_PORT);
+  console.log('[Mail] SMTP transport ->', SMTP_HOST, SMTP_PORT, SMTP_TLS_INSECURE ? 'tls:allow-self-signed' : '');
 } else {
   transporter = nodemailer.createTransport({
     jsonTransport: true,

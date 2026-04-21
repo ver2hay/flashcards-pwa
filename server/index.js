@@ -6,7 +6,7 @@
  *  - File uploads to disk
  *
  * Env: PORT, CORS_ORIGIN, JWT_SECRET, UPLOAD_DIR,
- *      SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE, MAIL_FROM
+ *      SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE, SMTP_TLS_INSECURE, MAIL_FROM
  */
 import express from 'express';
 import fs from 'node:fs/promises';
