@@ -164,7 +164,12 @@ export function FoldersPage() {
       await loadData();
     } catch (error) {
       console.error('[Folder Create] failed', error);
-      setCreateError('Не удалось создать облачную папку. Попробуйте ещё раз или создайте локально.');
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.includes('401')) {
+        setCreateError('Облачная сессия истекла. Выйдите и войдите снова, чтобы возобновить синхронизацию.');
+      } else {
+        setCreateError('Не удалось создать облачную папку. Попробуйте ещё раз или создайте локально.');
+      }
     }
   };
 

@@ -27,27 +27,47 @@ interface AuthState {
   logout: () => void;
 }
 
-async function syncCloudSession(username: string, password: string, mode: 'login' | 'register') {
+/**
+ * Ensure a cloud JWT is stored: try login first, fall back to register.
+ * This handles the common case where a local-only user signs in after
+ * the cloud API was introduced (the account exists locally but not in
+ * the cloud DB yet).
+ */
+async function syncCloudSession(
+  username: string,
+  password: string,
+  mode: 'login' | 'register'
+) {
   if (
     !isCloudApiConfigured ||
     (typeof navigator !== 'undefined' && !navigator.onLine)
   ) {
     return;
   }
+  const tryLogin = async () => {
+    const { token } = await loginToCloud(username, password);
+    setCloudToken(token);
+  };
+  const tryRegister = async () => {
+    const { token } = await registerOnCloud(username, password);
+    setCloudToken(token);
+  };
   try {
     if (mode === 'register') {
       try {
-        const { token } = await registerOnCloud(username, password);
-        setCloudToken(token);
-        return;
-      } catch {
-        const { token } = await loginToCloud(username, password);
-        setCloudToken(token);
-        return;
+        await tryRegister();
+      } catch (e) {
+        console.warn('[Auth] cloud register failed, fallback to login', e);
+        await tryLogin();
       }
+      return;
     }
-    const { token } = await loginToCloud(username, password);
-    setCloudToken(token);
+    try {
+      await tryLogin();
+    } catch (e) {
+      console.warn('[Auth] cloud login failed, fallback to register', e);
+      await tryRegister();
+    }
   } catch (e) {
     console.warn('[Auth] cloud session failed', mode, e);
   }

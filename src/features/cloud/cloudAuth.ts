@@ -1,19 +1,25 @@
+/**
+ * Cloud JWT storage. Kept in localStorage so the token survives
+ * reloads, standalone PWA launches and offline periods.
+ */
 const TOKEN_KEY = 'flashcards.cloudToken';
 
 export function getCloudToken(): string | null {
-  if (typeof sessionStorage === 'undefined') return null;
-  return sessionStorage.getItem(TOKEN_KEY);
+  if (typeof localStorage === 'undefined') return null;
+  return localStorage.getItem(TOKEN_KEY);
 }
 
 export function setCloudToken(token: string): void {
-  sessionStorage.setItem(TOKEN_KEY, token);
+  if (typeof localStorage === 'undefined') return;
+  localStorage.setItem(TOKEN_KEY, token);
 }
 
 export function clearCloudToken(): void {
-  sessionStorage.removeItem(TOKEN_KEY);
+  if (typeof localStorage === 'undefined') return;
+  localStorage.removeItem(TOKEN_KEY);
 }
 
-export function authHeaders(): HeadersInit {
+export function authHeaders(): Record<string, string> {
   const token = getCloudToken();
   if (!token) return {};
   return { Authorization: `Bearer ${token}` };

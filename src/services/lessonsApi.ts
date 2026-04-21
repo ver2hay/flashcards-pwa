@@ -1,4 +1,4 @@
-import { authHeaders } from '../features/cloud/cloudAuth';
+import { authHeaders, clearCloudToken } from '../features/cloud/cloudAuth';
 
 const API_BASE_URL = (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env
   ?.VITE_API_BASE_URL;
@@ -15,12 +15,8 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set('Accept', 'application/json');
   if (!USE_MOCKS) {
-    const extra = authHeaders() as Record<string, string>;
-    if (extra && typeof extra === 'object') {
-      Object.entries(extra).forEach(([k, v]) => {
-        if (typeof v === 'string') headers.set(k, v);
-      });
-    }
+    const extra = authHeaders();
+    Object.entries(extra).forEach(([k, v]) => headers.set(k, v));
   }
   if (init?.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
@@ -31,6 +27,10 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      clearCloudToken();
+      throw new Error('API 401: sign in again to sync with cloud');
+    }
     if (response.status === 404 && path.endsWith('.json')) {
       console.error(
         `Mock data not found at ${path}. Add the file to public${path}.`

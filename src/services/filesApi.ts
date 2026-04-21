@@ -1,5 +1,9 @@
-import { authHeaders } from '../features/cloud/cloudAuth';
+import { authHeaders, clearCloudToken } from '../features/cloud/cloudAuth';
 import { buildApiUrl, isCloudApiConfigured } from './lessonsApi';
+
+function handle401(status: number): void {
+  if (status === 401) clearCloudToken();
+}
 
 export interface LessonFileMeta {
   id: string;
@@ -12,10 +16,8 @@ export interface LessonFileMeta {
 
 function mergeAuth(init?: HeadersInit): Headers {
   const headers = new Headers(init);
-  const extra = authHeaders() as Record<string, string>;
-  Object.entries(extra).forEach(([k, v]) => {
-    if (typeof v === 'string') headers.set(k, v);
-  });
+  const extra = authHeaders();
+  Object.entries(extra).forEach(([k, v]) => headers.set(k, v));
   return headers;
 }
 
@@ -26,6 +28,7 @@ export async function listLessonFiles(lessonId: string): Promise<LessonFileMeta[
     headers: mergeAuth({ Accept: 'application/json' }),
   });
   if (!response.ok) {
+    handle401(response.status);
     throw new Error(`List files failed: ${response.status}`);
   }
   return response.json() as Promise<LessonFileMeta[]>;
@@ -42,6 +45,7 @@ export async function uploadLessonFile(lessonId: string, file: File): Promise<Le
     body,
   });
   if (!response.ok) {
+    handle401(response.status);
     const text = await response.text();
     throw new Error(`Upload failed: ${response.status} ${text}`);
   }
@@ -56,6 +60,7 @@ export async function downloadLessonFile(lessonId: string, fileId: string): Prom
     headers: mergeAuth(),
   });
   if (!response.ok) {
+    handle401(response.status);
     throw new Error(`Download failed: ${response.status}`);
   }
   return response.blob();
