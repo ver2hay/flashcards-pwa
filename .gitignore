@@ -17,6 +17,10 @@ server/uploads/
 server/db.json
 .env
 .env.local
+# Production server secrets (not committed)
+api.env
+smtp.env
+*.env.secrets
 
 # Editor directories and files
 .vscode/*
