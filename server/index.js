@@ -195,6 +195,14 @@ app.post('/auth/request-code', async (req, res) => {
       });
       return;
     }
+    const smtp = typeof e === 'object' && e && 'response' in e ? String(e.response) : '';
+    if (smtp.includes('SmtpClientAuthentication is disabled')) {
+      res.status(503).json({
+        error:
+          'Почта Outlook: для ящика отключён SMTP. Включите «Authenticated SMTP» (SMTP AUTH) в настройках учётной записи Microsoft, см. https://aka.ms/smtp_auth_disabled (или в Exchange Admin для организации), затем повторите.',
+      });
+      return;
+    }
     res.status(502).json({ error: 'Не удалось отправить письмо. Попробуйте позже.' });
     return;
   }
