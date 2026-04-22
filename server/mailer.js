@@ -37,6 +37,8 @@ if (BREVO_SMTP_KEY && BREVO_SMTP_LOGIN) {
     secure: SMTP_SECURE || SMTP_PORT === 465,
     auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
     tls,
+    /** Prefer IPv4: some VPS have flaky IPv6/DNS; Yandex has both A and AAAA. */
+    ...(isYandex ? { family: 4 } : {}),
     ...(isMs365Sub && !SMTP_SECURE && SMTP_PORT === 587
       ? { requireTLS: true }
       : {}),

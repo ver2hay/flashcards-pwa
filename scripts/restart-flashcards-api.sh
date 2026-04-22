@@ -22,6 +22,7 @@ docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
 echo "Starting ${CONTAINER_NAME} with --env-file ${ENV_FILE}…"
 docker run -d --name "$CONTAINER_NAME" --restart unless-stopped \
   --network "$NETWORK" \
+  --dns 8.8.8.8 --dns 8.8.4.4 \
   -v "${PROJECT_DIR}:/app" -w /app \
   --env-file "$ENV_FILE" \
   "$IMAGE" sh -c 'exec node server/index.js'
