@@ -30,6 +30,7 @@ if (BREVO_SMTP_KEY && BREVO_SMTP_LOGIN) {
   const host = String(SMTP_HOST);
   const isMs365Sub =
     host.includes('office365') || host === 'smtp-mail.outlook.com';
+  const isYandex = host.includes('yandex.');
   transporter = nodemailer.createTransport({
     host,
     port: SMTP_PORT,
@@ -39,6 +40,7 @@ if (BREVO_SMTP_KEY && BREVO_SMTP_LOGIN) {
     ...(isMs365Sub && !SMTP_SECURE && SMTP_PORT === 587
       ? { requireTLS: true }
       : {}),
+    ...(isYandex && !SMTP_SECURE && SMTP_PORT === 587 ? { requireTLS: true } : {}),
   });
   console.log(
     '[Mail] SMTP transport ->',
@@ -48,7 +50,9 @@ if (BREVO_SMTP_KEY && BREVO_SMTP_LOGIN) {
       ? 'tls:allow-self-signed'
       : isMs365Sub
         ? 'ms365:starttls'
-        : ''
+        : isYandex
+          ? 'yandex'
+          : ''
   );
 } else {
   transporter = nodemailer.createTransport({
