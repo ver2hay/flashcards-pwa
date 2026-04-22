@@ -206,14 +206,22 @@ app.post('/auth/request-code', async (req, res) => {
     if (
       e &&
       e.code === 'EAUTH' &&
-      String(process.env.SMTP_HOST || '').includes('yandex') &&
-      (smtp.includes('Invalid user or password') || smtp.includes('authentication failed'))
+      String(process.env.SMTP_HOST || '').includes('yandex')
     ) {
-      res.status(503).json({
-        error:
-          'Яндекс.Почта: неверный логин/пароль для SMTP, или нужен «Пароль приложения» (id.yandex.ru → Безопасность) если включена двухфакторная аутентификация. Проверьте SMTP_USER и SMTP_PASS в api.env на сервере.',
-      });
-      return;
+      if (smtp.includes('does not have access rights')) {
+        res.status(503).json({
+          error:
+            'Яндекс.Почта: для ящика запрещён доступ из почтовых программ (SMTP). В веб-интерфейсе: Настройки → Почтовые программы → включите IMAP и доступ по протоколу (или создайте пароль приложения для «Почта»). После этого снова запросите код.',
+        });
+        return;
+      }
+      if (smtp.includes('Invalid user or password') || smtp.includes('authentication failed')) {
+        res.status(503).json({
+          error:
+            'Яндекс.Почта: неверный логин/пароль для SMTP, или нужен «Пароль приложения» (id.yandex.ru → Безопасность) если включена двухфакторная аутентификация. Проверьте SMTP_USER и SMTP_PASS в api.env на сервере.',
+        });
+        return;
+      }
     }
     res.status(502).json({ error: 'Не удалось отправить письмо. Попробуйте позже.' });
     return;
