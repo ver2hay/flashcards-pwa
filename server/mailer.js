@@ -27,18 +27,28 @@ if (BREVO_SMTP_KEY && BREVO_SMTP_LOGIN) {
   const tls = SMTP_TLS_INSECURE
     ? { rejectUnauthorized: false, minVersion: 'TLSv1.2' }
     : undefined;
+  const host = String(SMTP_HOST);
+  const isMs365Sub =
+    host.includes('office365') || host === 'smtp-mail.outlook.com';
   transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
+    host,
     port: SMTP_PORT,
     secure: SMTP_SECURE || SMTP_PORT === 465,
     auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
     tls,
+    ...(isMs365Sub && !SMTP_SECURE && SMTP_PORT === 587
+      ? { requireTLS: true }
+      : {}),
   });
   console.log(
     '[Mail] SMTP transport ->',
-    SMTP_HOST,
+    host,
     SMTP_PORT,
-    SMTP_TLS_INSECURE ? 'tls:allow-self-signed' : ''
+    SMTP_TLS_INSECURE
+      ? 'tls:allow-self-signed'
+      : isMs365Sub
+        ? 'ms365:starttls'
+        : ''
   );
 } else {
   transporter = nodemailer.createTransport({
