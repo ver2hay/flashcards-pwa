@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
   Card,
-  CardActionArea,
   CardContent,
   Chip,
   Dialog,
@@ -13,6 +12,7 @@ import {
   DialogTitle,
   FormControlLabel,
   FormHelperText,
+  IconButton,
   LinearProgress,
   Stack,
   Switch,
@@ -23,15 +23,36 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
 import CloudDoneRoundedIcon from '@mui/icons-material/CloudDoneRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
+import CloudOutlinedIcon from '@mui/icons-material/CloudOutlined';
+import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import KeyboardArrowUpRoundedIcon from '@mui/icons-material/KeyboardArrowUpRounded';
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import { useAuthStore } from '../features/auth/authStore';
 import {
   getLessonsByUserId,
   getCardsByUserId,
+  getCardsByFolderId,
+  getLessonById,
   createLesson as createLessonLocal,
   bulkUpsertLessons,
+  deleteLessons,
+  deleteCard,
   type Lesson,
 } from '../db';
-import { createLesson as createLessonCloud, isCloudApiConfigured } from '../services/lessonsApi';
+import {
+  createLesson as createLessonCloud,
+  deleteLessonFromCloud,
+  updateLesson,
+  deleteLessonCard,
+  isCloudApiConfigured,
+} from '../services/lessonsApi';
+import { syncLessons, LESSONS_SYNCED_EVENT } from '../services/syncService';
+import { canEditCloudLesson, isForeignCloudLesson } from '../utils/lessonAccess';
+import { sortLessonsForDisplay } from '../utils/lessonSort';
+import { putPublicLessonsOrder } from '../services/adminApi';
 
 const LESSON_NAME_MAX_LENGTH = 60;
 
@@ -53,7 +74,9 @@ function parseEpoch(value?: string | number): number | undefined {
 
 export function FoldersPage() {
   const userId = useAuthStore((state) => state.userId);
+  const role = useAuthStore((state) => state.role);
   const navigate = useNavigate();
+  const isAdmin = role === 'admin';
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [cardCountByLessonId, setCardCountByLessonId] = useState<Record<string, number>>({});
   const [createOpen, setCreateOpen] = useState(false);
@@ -63,6 +86,15 @@ export function FoldersPage() {
   const [isOnline, setIsOnline] = useState<boolean>(
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
+  const [deleteTarget, setDeleteTarget] = useState<Lesson | null>(null);
+  const [cardsLesson, setCardsLesson] = useState<Lesson | null>(null);
+  const [cardsRows, setCardsRows] = useState<
+    Awaited<ReturnType<typeof getCardsByFolderId>>
+  >([]);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [renameTarget, setRenameTarget] = useState<Lesson | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameError, setRenameError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!userId) return;
@@ -79,8 +111,51 @@ export function FoldersPage() {
   }, [userId]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (!userId) return;
+    const onSynced = () => {
+      void loadData();
+    };
+    window.addEventListener(LESSONS_SYNCED_EVENT, onSynced);
+    void (async () => {
+      if (isCloudApiConfigured) {
+        try {
+          await syncLessons(userId);
+        } catch (e) {
+          console.warn('[Folders] sync on mount', e);
+        }
+      } else {
+        await loadData();
+      }
+    })();
+    return () => {
+      window.removeEventListener(LESSONS_SYNCED_EVENT, onSynced);
+    };
+  }, [userId, loadData]);
+
+  const displayLessons = useMemo(() => {
+    if (!userId) return [];
+    return sortLessonsForDisplay(lessons, userId, isAdmin);
+  }, [lessons, userId, isAdmin]);
+
+  const publicCloudSorted = useMemo(
+    () =>
+      [...lessons]
+        .filter((l) => l.source === 'cloud' && l.isPublic === true)
+        .sort(
+          (a, b) =>
+            (a.publicSortOrder ?? 0) - (b.publicSortOrder ?? 0) ||
+            a.name.localeCompare(b.name, 'ru')
+        ),
+    [lessons]
+  );
+
+  useEffect(() => {
+    if (!cardsLesson) {
+      setCardsRows([]);
+      return;
+    }
+    void getCardsByFolderId(cardsLesson.id).then(setCardsRows);
+  }, [cardsLesson]);
 
   useEffect(() => {
     const onOnline = () => setIsOnline(true);
@@ -151,6 +226,12 @@ export function FoldersPage() {
             createdAt,
             updatedAt,
             source: 'cloud',
+            cloudCreatedBy: response.createdBy ?? userId,
+            isPublic: response.public === true,
+            publicSortOrder:
+              typeof response.publicSortOrder === 'number'
+                ? response.publicSortOrder
+                : undefined,
           },
         ]);
       } else {
@@ -173,6 +254,121 @@ export function FoldersPage() {
     }
   };
 
+  const handleDeleteFolder = async () => {
+    if (!userId || !deleteTarget) return;
+    const lesson = deleteTarget;
+    setActionError(null);
+    try {
+      if (lesson.source === 'cloud' && isCloudApiConfigured) {
+        await deleteLessonFromCloud(lesson.id);
+      }
+      await deleteLessons(userId, [lesson.id]);
+      setDeleteTarget(null);
+      await loadData();
+      if (lesson.source === 'cloud' && isCloudApiConfigured) {
+        await syncLessons(userId).catch(() => {});
+      }
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Не удалось удалить');
+    }
+  };
+
+  const handleTogglePublic = async (lesson: Lesson, next: boolean) => {
+    if (!userId || !isAdmin || !isCloudApiConfigured) return;
+    setActionError(null);
+    try {
+      const updated = await updateLesson(lesson.id, { public: next });
+      const uAt = parseEpoch(updated.updatedAt) ?? lesson.updatedAt;
+      await bulkUpsertLessons([
+        {
+          ...lesson,
+          isPublic: updated.public === true,
+          name: updated.name ?? lesson.name,
+          updatedAt: uAt,
+          publicSortOrder:
+            typeof updated.publicSortOrder === 'number'
+              ? updated.publicSortOrder
+              : lesson.publicSortOrder,
+        },
+      ]);
+      await loadData();
+      await syncLessons(userId).catch(() => {});
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Ошибка');
+    }
+  };
+
+  const handleSaveRename = async () => {
+    if (!userId || !renameTarget) return;
+    const err = validateLessonName(renameValue);
+    if (err) {
+      setRenameError(err);
+      return;
+    }
+    const name = renameValue.trim();
+    setRenameError(null);
+    setActionError(null);
+    try {
+      const lesson = renameTarget;
+      if (lesson.source === 'cloud' && isCloudApiConfigured) {
+        await updateLesson(lesson.id, { name });
+        const u = await getLessonById(lesson.id);
+        const base = u ?? lesson;
+        const updatedAt = Date.now();
+        await bulkUpsertLessons([
+          {
+            ...base,
+            name,
+            updatedAt,
+          },
+        ]);
+        await syncLessons(userId);
+      } else {
+        const u = await getLessonById(lesson.id);
+        const base = u ?? lesson;
+        await bulkUpsertLessons([{ ...base, name, updatedAt: Date.now() }]);
+      }
+      setRenameTarget(null);
+      await loadData();
+    } catch (e) {
+      setRenameError(e instanceof Error ? e.message : 'Ошибка');
+    }
+  };
+
+  const handleMovePublic = async (index: number, delta: number) => {
+    if (!userId || publicCloudSorted.length < 2) return;
+    const j = index + delta;
+    if (j < 0 || j >= publicCloudSorted.length) return;
+    const list = [...publicCloudSorted];
+    const t = list[index];
+    list[index] = list[j];
+    list[j] = t;
+    setActionError(null);
+    try {
+      await putPublicLessonsOrder(list.map((l) => l.id));
+      await syncLessons(userId);
+      await loadData();
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Не удалось сохранить порядок');
+    }
+  };
+
+  const handleDeleteCardRow = async (cardId: string) => {
+    if (!userId || !cardsLesson) return;
+    if (!canEditCloudLesson(cardsLesson, userId, isAdmin)) return;
+    setActionError(null);
+    try {
+      if (cardsLesson.source === 'cloud' && isCloudApiConfigured) {
+        await deleteLessonCard(cardsLesson.id, cardId);
+      }
+      await deleteCard(cardId);
+      setCardsRows((prev) => prev.filter((c) => c.id !== cardId));
+      await loadData();
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Не удалось удалить карточку');
+    }
+  };
+
   const totalCards = Object.values(cardCountByLessonId).reduce((a, b) => a + b, 0);
 
   return (
@@ -182,9 +378,16 @@ export function FoldersPage() {
           Мои папки
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-          Выбери папку для тренировки. Облачные папки синхронизируются между устройствами.
+          Свои папки и папки, опубликованные администратором для всех. Импорт и правка — только в
+          своих папках (или у админа — в любых).
         </Typography>
       </Box>
+
+      {actionError && (
+        <Typography color="error" variant="body2" sx={{ fontWeight: 700 }}>
+          {actionError}
+        </Typography>
+      )}
 
       <Card variant="outlined" sx={{ bgcolor: 'rgba(28,176,246,0.08)', borderColor: 'secondary.light' }}>
         <CardContent sx={{ py: 2 }}>
@@ -247,48 +450,189 @@ export function FoldersPage() {
         </Card>
       ) : (
         <Stack spacing={1.5}>
-          {lessons.map((lesson) => {
+          {displayLessons.map((lesson) => {
             const n = cardCountByLessonId[lesson.id] ?? 0;
             const isCloud = lesson.source === 'cloud';
+            const canEdit = userId
+              ? canEditCloudLesson(lesson, userId, isAdmin)
+              : false;
+            const foreign = userId ? isForeignCloudLesson(lesson, userId) : false;
             return (
               <Card key={lesson.id}>
-                <CardActionArea onClick={() => navigate('/import')}>
-                  <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Box
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 2,
-                        bgcolor: isCloud ? 'primary.light' : 'grey.300',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: isCloud ? 'primary.dark' : 'grey.700',
-                      }}
-                    >
-                      {isCloud ? <CloudDoneRoundedIcon /> : <FolderRoundedIcon />}
-                    </Box>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 800 }} noWrap>
-                        {lesson.name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-                        {n} {n === 1 ? 'карточка' : n < 5 ? 'карточки' : 'карточек'}
-                      </Typography>
-                    </Box>
-                    <Chip
-                      size="small"
-                      label={isCloud ? 'Облако' : 'Локально'}
-                      color={isCloud ? 'success' : 'default'}
-                      sx={{ fontWeight: 800 }}
-                    />
-                  </CardContent>
-                </CardActionArea>
+                <CardContent>
+                  <Stack spacing={1.5}>
+                    <Stack direction="row" alignItems="flex-start" spacing={1.5}>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 2,
+                          bgcolor: isCloud ? 'primary.light' : 'grey.300',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: isCloud ? 'primary.dark' : 'grey.700',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {isCloud ? <CloudDoneRoundedIcon /> : <FolderRoundedIcon />}
+                      </Box>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Stack direction="row" alignItems="center" spacing={0.5}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 800 }} noWrap>
+                            {lesson.name}
+                          </Typography>
+                          {isAdmin && lesson.source === 'cloud' && (
+                            <IconButton
+                              size="small"
+                              aria-label="Переименовать"
+                              onClick={() => {
+                                setRenameTarget(lesson);
+                                setRenameValue(lesson.name);
+                                setRenameError(null);
+                              }}
+                            >
+                              <EditRoundedIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                        </Stack>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+                          {n}{' '}
+                          {n === 1 ? 'карточка' : n < 5 ? 'карточки' : 'карточек'}
+                        </Typography>
+                        <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: 0.75 }}>
+                          <Chip
+                            size="small"
+                            label={isCloud ? 'Облако' : 'Локально'}
+                            color={isCloud ? 'success' : 'default'}
+                            sx={{ fontWeight: 800 }}
+                          />
+                          {isCloud && lesson.isPublic && (
+                            <Chip
+                              size="small"
+                              icon={<CloudOutlinedIcon sx={{ fontSize: 16 }} />}
+                              label="Для всех"
+                              color="secondary"
+                              variant="outlined"
+                              sx={{ fontWeight: 800 }}
+                            />
+                          )}
+                          {isCloud && foreign && (
+                            <Chip
+                              size="small"
+                              icon={<PersonOutlineRoundedIcon sx={{ fontSize: 16 }} />}
+                              label="Чужая"
+                              sx={{ fontWeight: 800 }}
+                            />
+                          )}
+                        </Stack>
+                      </Box>
+                    </Stack>
+                    {isAdmin && isCloud && isCloudApiConfigured && (
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={lesson.isPublic === true}
+                            onChange={(_, v) => void handleTogglePublic(lesson, v)}
+                            color="secondary"
+                          />
+                        }
+                        label="Общий доступ (для всех пользователей)"
+                        sx={{ m: 0, alignItems: 'center' }}
+                      />
+                    )}
+                    <Stack direction="row" flexWrap="wrap" gap={1}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() =>
+                          navigate('/import', { state: { presetLessonId: lesson.id } })
+                        }
+                        disabled={!canEdit}
+                      >
+                        Импорт
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<ListAltRoundedIcon />}
+                        onClick={() => setCardsLesson(lesson)}
+                        disabled={!canEdit}
+                      >
+                        Слова
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => navigate('/train')}
+                      >
+                        Урок
+                      </Button>
+                      {canEdit && (
+                        <IconButton
+                          aria-label="Удалить папку"
+                          color="error"
+                          onClick={() => setDeleteTarget(lesson)}
+                          size="small"
+                        >
+                          <DeleteOutlineRoundedIcon />
+                        </IconButton>
+                      )}
+                    </Stack>
+                  </Stack>
+                </CardContent>
               </Card>
             );
           })}
         </Stack>
       )}
+
+      {hasLessons &&
+        isAdmin &&
+        isCloudApiConfigured &&
+        publicCloudSorted.length > 0 && (
+          <Card variant="outlined" sx={{ borderColor: 'secondary.light' }}>
+            <CardContent>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 0.5 }}>
+                Порядок общих папок
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontWeight: 600 }}>
+                Для всех пользователей: сначала их папки, затем общие — в порядке ниже.
+              </Typography>
+              <Stack spacing={1}>
+                {publicCloudSorted.map((l, idx) => (
+                  <Stack
+                    key={l.id}
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{ py: 0.5 }}
+                  >
+                    <Typography sx={{ flex: 1, fontWeight: 700 }} noWrap>
+                      {l.name}
+                    </Typography>
+                    <IconButton
+                      size="small"
+                      aria-label="Выше"
+                      disabled={idx === 0}
+                      onClick={() => void handleMovePublic(idx, -1)}
+                    >
+                      <KeyboardArrowUpRoundedIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      aria-label="Ниже"
+                      disabled={idx === publicCloudSorted.length - 1}
+                      onClick={() => void handleMovePublic(idx, 1)}
+                    >
+                      <KeyboardArrowDownRoundedIcon />
+                    </IconButton>
+                  </Stack>
+                ))}
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
 
       <Dialog open={createOpen} onClose={handleCreateClose} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 800 }}>Новая папка</DialogTitle>
@@ -324,6 +668,115 @@ export function FoldersPage() {
           <Button onClick={handleCreateClose}>Отмена</Button>
           <Button variant="contained" onClick={handleCreateSubmit}>
             Создать
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 800 }}>Удалить папку?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+            «{deleteTarget?.name}» и все карточки в ней будут удалены
+            {deleteTarget?.source === 'cloud' ? ' с сервера и с устройства' : ''}.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setDeleteTarget(null)}>Отмена</Button>
+          <Button color="error" variant="contained" onClick={() => void handleDeleteFolder()}>
+            Удалить
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={!!cardsLesson}
+        onClose={() => setCardsLesson(null)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle sx={{ fontWeight: 800 }}>Карточки: {cardsLesson?.name}</DialogTitle>
+        <DialogContent dividers>
+          {cardsRows.length === 0 ? (
+            <Typography color="text.secondary" sx={{ fontWeight: 600 }}>
+              Пока нет карточек.
+            </Typography>
+          ) : (
+            <Stack spacing={1}>
+              {cardsRows.map((c) => (
+                <Stack
+                  key={c.id}
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  sx={{
+                    py: 1,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
+                      {c.frontText}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" noWrap>
+                      {c.backText}
+                    </Typography>
+                  </Box>
+                  <IconButton
+                    aria-label="Удалить карточку"
+                    color="error"
+                    size="small"
+                    onClick={() => void handleDeleteCardRow(c.id)}
+                  >
+                    <DeleteOutlineRoundedIcon />
+                  </IconButton>
+                </Stack>
+              ))}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setCardsLesson(null)}>Закрыть</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={!!renameTarget}
+        onClose={() => {
+          setRenameTarget(null);
+          setRenameError(null);
+        }}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle sx={{ fontWeight: 800 }}>Название папки</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            label="Название"
+            value={renameValue}
+            onChange={(e) => {
+              setRenameValue(e.target.value);
+              setRenameError(null);
+            }}
+            error={!!renameError}
+            helperText={renameError}
+            fullWidth
+            margin="normal"
+            inputProps={{ maxLength: LESSON_NAME_MAX_LENGTH }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => {
+              setRenameTarget(null);
+              setRenameError(null);
+            }}
+          >
+            Отмена
+          </Button>
+          <Button variant="contained" onClick={() => void handleSaveRename()}>
+            Сохранить
           </Button>
         </DialogActions>
       </Dialog>

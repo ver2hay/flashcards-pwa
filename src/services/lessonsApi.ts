@@ -48,6 +48,9 @@ export interface LessonApiResponse {
   name: string;
   createdAt?: string | number;
   updatedAt?: string | number;
+  createdBy?: string;
+  public?: boolean;
+  publicSortOrder?: number;
 }
 
 export interface CreateLessonPayload {
@@ -106,4 +109,40 @@ export async function fetchLessonCards(lessonId: string): Promise<LessonCardApiR
     ? `/lessons-${encoded}-cards.json`
     : `/lessons/${encoded}/cards`;
   return requestJson<LessonCardApiResponse[]>(path);
+}
+
+export async function updateLesson(
+  lessonId: string,
+  body: { name?: string; public?: boolean }
+): Promise<LessonApiResponse> {
+  if (!isCloudApiConfigured) {
+    throw new Error('Cloud API not configured');
+  }
+  const encoded = encodeURIComponent(lessonId);
+  return requestJson<LessonApiResponse>(`/lessons/${encoded}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteLessonFromCloud(lessonId: string): Promise<void> {
+  if (!isCloudApiConfigured) {
+    throw new Error('Cloud API not configured');
+  }
+  const encoded = encodeURIComponent(lessonId);
+  await requestJson<{ ok: boolean }>(`/lessons/${encoded}`, { method: 'DELETE' });
+}
+
+export async function deleteLessonCard(
+  lessonId: string,
+  cardId: string
+): Promise<void> {
+  if (!isCloudApiConfigured) {
+    throw new Error('Cloud API not configured');
+  }
+  const e1 = encodeURIComponent(lessonId);
+  const e2 = encodeURIComponent(cardId);
+  await requestJson<{ ok: boolean }>(`/lessons/${e1}/cards/${e2}`, {
+    method: 'DELETE',
+  });
 }

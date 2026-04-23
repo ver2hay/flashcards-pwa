@@ -37,11 +37,11 @@ export function TrainSetup({
   return (
     <Box>
       <Typography variant="h5" component="h1" gutterBottom>
-        Training setup
+        Настройка тренировки
       </Typography>
 
       <FormControl component="fieldset" sx={{ mt: 2, mb: 2 }} fullWidth>
-        <FormLabel component="legend">Lessons</FormLabel>
+        <FormLabel component="legend">Папки</FormLabel>
         <FormGroup>
           {lessons.map((lesson) => (
             <FormControlLabel
@@ -59,7 +59,7 @@ export function TrainSetup({
       </FormControl>
 
       <FormControl component="fieldset" sx={{ mt: 2, mb: 2 }} fullWidth>
-        <FormLabel component="legend">Mode</FormLabel>
+        <FormLabel component="legend">Режим</FormLabel>
         <RadioGroup
           value={mode}
           onChange={(e) => onModeChange(e.target.value)}
@@ -72,7 +72,7 @@ export function TrainSetup({
               control={<Radio disabled={opt.disabled} />}
               label={
                 <Box component="span">
-                  {opt.labelRu} ({opt.label})
+                  {opt.label}
                   {opt.disabledReason != null && (
                     <Typography
                       component="span"
@@ -103,7 +103,7 @@ export function TrainSetup({
         disabled={!canStart}
         fullWidth
       >
-        Start training
+        Начать тренировку
       </Button>
     </Box>
   );

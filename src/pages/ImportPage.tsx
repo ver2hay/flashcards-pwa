@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -64,7 +64,11 @@ function downloadTemplate(): void {
 
 export function ImportPage() {
   const userId = useAuthStore((state) => state.userId);
+  const role = useAuthStore((state) => state.role);
   const navigate = useNavigate();
+  const location = useLocation();
+  const presetLessonId = (location.state as { presetLessonId?: string } | null)
+    ?.presetLessonId;
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [lessonId, setLessonId] = useState<string>('');
   const [newLessonName, setNewLessonName] = useState<string>('');
@@ -84,8 +88,23 @@ export function ImportPage() {
     loadLessons();
   }, [loadLessons]);
 
+  useEffect(() => {
+    if (presetLessonId) {
+      setLessonId(presetLessonId);
+    }
+  }, [presetLessonId]);
+
+  const selectedLesson = lessons.find((l) => l.id === lessonId);
+  const importReadOnly =
+    !!selectedLesson &&
+    selectedLesson.source === 'cloud' &&
+    !!selectedLesson.cloudCreatedBy &&
+    selectedLesson.cloudCreatedBy !== userId &&
+    role !== 'admin';
+
   const isCreatingLesson = lessonId === NEW_LESSON_VALUE;
   const canUpload =
+    !importReadOnly &&
     !!lessonId &&
     !!file &&
     !uploading &&
@@ -111,6 +130,7 @@ export function ImportPage() {
 
   const handleUpload = async () => {
     if (!userId || !lessonId || !file) return;
+    if (importReadOnly) return;
     setLessonError(null);
     setParseError(null);
 
@@ -211,7 +231,7 @@ export function ImportPage() {
         state: { lessonName: targetLessonName, count: rows.length },
       });
     } catch (err) {
-      setParseError(err instanceof Error ? err.message : 'Import failed');
+      setParseError(err instanceof Error ? err.message : 'Не удалось выполнить импорт');
     } finally {
       setUploading(false);
     }
@@ -226,6 +246,13 @@ export function ImportPage() {
         Для облачных папок файл сначала загружается на сервер, затем карточки — на других устройствах
         подтянутся при синхронизации.
       </Typography>
+
+      {importReadOnly && (
+        <Alert severity="info" sx={{ mb: 2, fontWeight: 600 }}>
+          Эта папка опубликована другим пользователем — добавлять слова можно только в свои папки
+          (или правит администратор).
+        </Alert>
+      )}
 
       <FormControl fullWidth sx={{ mt: 2, mb: 2 }} error={showLessonError}>
         <InputLabel id="import-lesson-label">Папка</InputLabel>
@@ -284,13 +311,19 @@ export function ImportPage() {
       </Typography>
 
       <Box sx={{ mb: 2 }}>
-        <Button variant="outlined" component="label" fullWidth>
+        <Button
+          variant="outlined"
+          component="label"
+          fullWidth
+          disabled={importReadOnly}
+        >
           Выбрать файл (.csv или .xlsx)
           <input
             type="file"
             hidden
             accept=".csv,.xlsx"
             onChange={handleFileChange}
+            disabled={importReadOnly}
           />
         </Button>
         {file && (

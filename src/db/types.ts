@@ -28,6 +28,12 @@ export interface Lesson {
   createdAt: number;
   updatedAt: number;
   source: LessonSource;
+  /** Server owner id for cloud lessons (who can delete / publish) */
+  cloudCreatedBy?: string;
+  /** Server: published for all users */
+  isPublic?: boolean;
+  /** Server: order among public folders (others), set by admin */
+  publicSortOrder?: number;
 }
 
 export interface Card {

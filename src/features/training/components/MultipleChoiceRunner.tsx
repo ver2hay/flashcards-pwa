@@ -9,6 +9,8 @@ interface OptionButtonProps {
   sx: { justifyContent: string; textTransform: string; '&.Mui-disabled'?: { opacity: number; backgroundColor?: string } };
 }
 
+const AUTO_NEXT_MS = 1000;
+
 interface MultipleChoiceRunnerProps {
   currentCard: Card;
   position: number;
@@ -20,7 +22,9 @@ interface MultipleChoiceRunnerProps {
   isCorrect: boolean;
   correctAnswer: string;
   onSelectOption: (option: string) => void;
+  onDontKnow: () => void;
   onNext: () => void;
+  onAbort: () => void;
   checking: boolean;
 }
 
@@ -31,8 +35,13 @@ export function MultipleChoiceRunner({
   score,
   options,
   correctAnswer,
+  checked,
+  userAnswer,
+  isCorrect,
   onSelectOption,
+  onDontKnow,
   onNext,
+  onAbort,
   checking,
 }: MultipleChoiceRunnerProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -47,6 +56,24 @@ export function MultipleChoiceRunner({
     setSelectedOption(null);
     setIsRevealed(false);
   }, [currentCard.id]);
+
+  useEffect(() => {
+    if (!checked) return;
+    setIsRevealed(true);
+    if (userAnswer && displayOptions.includes(userAnswer)) {
+      setSelectedOption(userAnswer);
+    } else {
+      setSelectedOption(null);
+    }
+  }, [checked, currentCard.id, userAnswer, displayOptions]);
+
+  useEffect(() => {
+    if (!checked || !isCorrect) return;
+    const t = window.setTimeout(() => {
+      onNext();
+    }, AUTO_NEXT_MS);
+    return () => window.clearTimeout(t);
+  }, [checked, isCorrect, currentCard.id, onNext]);
 
   const getOptionButtonProps = useCallback(
     (option: string): OptionButtonProps => {
@@ -123,18 +150,35 @@ export function MultipleChoiceRunner({
     [isRevealed, checking, onSelectOption]
   );
 
+  const canUseDontKnow = !isRevealed && !checking;
+  const showNext = checked && !isCorrect;
+
   return (
     <Box>
-      <Typography variant="body2" color="text.secondary" gutterBottom>
-        Card {position} / {total} · Score: {score}
-      </Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 1,
+          flexWrap: 'wrap',
+          mb: 1,
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          Карточка {position} / {total} · Очки: {score}
+        </Typography>
+        <Button size="small" variant="outlined" color="inherit" onClick={onAbort}>
+          Прервать урок
+        </Button>
+      </Box>
 
       <Typography variant="h6" component="p" sx={{ mt: 2, mb: 2 }}>
         {currentCard.frontText}
       </Typography>
 
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        Choose the correct translation (Russian):
+        Выберите правильный перевод (русский):
       </Typography>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -154,11 +198,21 @@ export function MultipleChoiceRunner({
             </Button>
           );
         })}
+        <Button
+          variant="outlined"
+          color="inherit"
+          fullWidth
+          disabled={!canUseDontKnow}
+          onClick={onDontKnow}
+          sx={{ justifyContent: 'center', textTransform: 'none' }}
+        >
+          Я не знаю
+        </Button>
       </Box>
 
-      {isRevealed && (
-        <Button variant="contained" onClick={onNext} sx={{ mt: 2 }}>
-          Next
+      {showNext && (
+        <Button variant="contained" onClick={onNext} sx={{ mt: 2 }} fullWidth>
+          Далее
         </Button>
       )}
     </Box>

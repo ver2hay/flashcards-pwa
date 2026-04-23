@@ -2,10 +2,11 @@
  * Flashcards sync API:
  *  - Email+password auth with 6-digit email verification codes
  *  - JWT (no expiry) + password reset by email
- *  - Shared library: lessons/cards/files visible to all authenticated users
+ *  - Lessons: own + public; only admin publishes; admin user management
  *  - File uploads to disk
  *
  * Env: PORT, CORS_ORIGIN, JWT_SECRET, UPLOAD_DIR,
+ *      ADMIN_BOOTSTRAP_EMAIL, ADMIN_BOOTSTRAP_PASSWORD (optional first admin)
  *      BREVO_SMTP_LOGIN, BREVO_SMTP_KEY (prefer),
  *      SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE, SMTP_TLS_INSECURE, MAIL_FROM
  */
@@ -49,7 +50,7 @@ app.use(express.json({ limit: '10mb' }));
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -135,6 +136,91 @@ async function prunePending(db) {
   if (db.pending.length !== initial) {
     await writeDb(db);
   }
+}
+
+function userRole(user) {
+  return user && user.role === 'admin' ? 'admin' : 'user';
+}
+
+function isAdminUser(user) {
+  return userRole(user) === 'admin';
+}
+
+function canAccessLesson(userId, lesson, user) {
+  if (!lesson) return false;
+  if (isAdminUser(user)) return true;
+  if (lesson.createdBy === userId) return true;
+  return lesson.public === true;
+}
+
+function canModifyLesson(userId, lesson, user) {
+  if (!lesson) return false;
+  if (isAdminUser(user)) return true;
+  return lesson.createdBy === userId;
+}
+
+function nextPublicSortOrder(db) {
+  const max = db.lessons
+    .filter((l) => l.public === true)
+    .reduce((m, l) => Math.max(m, Number(l.publicSortOrder) || 0), -1);
+  return max + 1;
+}
+
+function sortLessonsForClient(lessons, userId, isAdmin) {
+  const mine = lessons.filter((l) => l.createdBy === userId);
+  const pubOthers = lessons.filter((l) => l.public === true && l.createdBy !== userId);
+  const privOthers = lessons.filter((l) => !l.public && l.createdBy !== userId);
+  const mineSorted = [...mine].sort(
+    (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+  );
+  const pubOthersSorted = [...pubOthers].sort(
+    (a, b) =>
+      (Number(a.publicSortOrder) || 0) - (Number(b.publicSortOrder) || 0) ||
+      String(a.name).localeCompare(String(b.name), 'ru')
+  );
+  const privOthersSorted = [...privOthers].sort((a, b) =>
+    String(a.name).localeCompare(String(b.name), 'ru')
+  );
+  if (isAdmin) {
+    return [...mineSorted, ...pubOthersSorted, ...privOthersSorted];
+  }
+  return [...mineSorted, ...pubOthersSorted];
+}
+
+async function loadRequestUser(req) {
+  const db = await readDb();
+  return db.users.find((u) => u.id === req.userId) ?? null;
+}
+
+async function ensureBootstrapAdmin() {
+  const rawEmail = process.env.ADMIN_BOOTSTRAP_EMAIL;
+  const password = process.env.ADMIN_BOOTSTRAP_PASSWORD;
+  if (!rawEmail || typeof password !== 'string' || !password) return;
+  const email = String(rawEmail).trim();
+  if (!isValidEmail(email)) {
+    console.warn('[API] ADMIN_BOOTSTRAP_EMAIL is invalid, skipping bootstrap');
+    return;
+  }
+  const db = await readDb();
+  const normalized = normalizeEmail(email);
+  const hash = bcrypt.hashSync(password, SALT_ROUNDS);
+  const existing = db.users.find((u) => u.email === normalized);
+  if (existing) {
+    existing.role = 'admin';
+    existing.passwordHash = hash;
+    existing.emailVerified = true;
+  } else {
+    db.users.push({
+      id: crypto.randomUUID(),
+      email: normalized,
+      passwordHash: hash,
+      emailVerified: true,
+      role: 'admin',
+      createdAt: nowIso(),
+    });
+  }
+  await writeDb(db);
+  console.log('[API] Bootstrap admin set for', normalized);
 }
 
 // --- AUTH: email verification ---
@@ -286,6 +372,7 @@ app.post('/auth/verify-code', async (req, res) => {
         passwordHash: pending.passwordHash,
         emailVerified: true,
         createdAt: nowIso(),
+        role: 'user',
       });
     }
     db.pending.splice(idx, 1);
@@ -341,15 +428,135 @@ app.get('/auth/me', authMiddleware, async (req, res) => {
     res.status(404).json({ error: 'user not found' });
     return;
   }
-  res.json({ id: user.id, email: user.email, emailVerified: !!user.emailVerified });
+  res.json({
+    id: user.id,
+    email: user.email,
+    emailVerified: !!user.emailVerified,
+    role: userRole(user),
+  });
 });
 
-// --- Shared library: lessons/cards/files ---
+// --- Admin ---
 
-app.get('/lessons', authMiddleware, async (_req, res) => {
+async function requireAdmin(req, res, next) {
+  const user = await loadRequestUser(req);
+  if (!user || !isAdminUser(user)) {
+    res.status(403).json({ error: 'Нужны права администратора' });
+    return;
+  }
+  next();
+}
+
+app.get('/admin/users', authMiddleware, requireAdmin, async (_req, res) => {
   const db = await readDb();
-  console.log('[API] GET /lessons (shared) ->', db.lessons.length);
-  res.json(db.lessons);
+  res.json(
+    db.users.map((u) => ({
+      id: u.id,
+      email: u.email,
+      emailVerified: !!u.emailVerified,
+      role: userRole(u),
+      createdAt: u.createdAt,
+    }))
+  );
+});
+
+app.post('/admin/users', authMiddleware, requireAdmin, async (req, res) => {
+  const { email, password, role: roleIn } = req.body ?? {};
+  if (!isValidEmail(email) || typeof password !== 'string' || password.length < 6) {
+    res.status(400).json({ error: 'Нужны email и password (от 6 символов)' });
+    return;
+  }
+  const role = roleIn === 'admin' ? 'admin' : 'user';
+  const normalized = normalizeEmail(email);
+  const db = await readDb();
+  if (db.users.some((u) => u.email === normalized)) {
+    res.status(409).json({ error: 'Пользователь с таким e-mail уже есть' });
+    return;
+  }
+  const user = {
+    id: crypto.randomUUID(),
+    email: normalized,
+    passwordHash: bcrypt.hashSync(password, SALT_ROUNDS),
+    emailVerified: true,
+    createdAt: nowIso(),
+    role,
+  };
+  db.users.push(user);
+  await writeDb(db);
+  res.status(201).json({
+    id: user.id,
+    email: user.email,
+    emailVerified: true,
+    role,
+    createdAt: user.createdAt,
+  });
+});
+
+app.patch('/admin/users/:userId', authMiddleware, requireAdmin, async (req, res) => {
+  const { userId: targetId } = req.params;
+  const { role: nextRole } = req.body ?? {};
+  if (nextRole !== 'admin' && nextRole !== 'user') {
+    res.status(400).json({ error: 'role: admin | user' });
+    return;
+  }
+  const db = await readDb();
+  const user = db.users.find((u) => u.id === targetId);
+  if (!user) {
+    res.status(404).json({ error: 'Пользователь не найден' });
+    return;
+  }
+  user.role = nextRole;
+  await writeDb(db);
+  res.json({
+    id: user.id,
+    email: user.email,
+    emailVerified: !!user.emailVerified,
+    role: userRole(user),
+    createdAt: user.createdAt,
+  });
+});
+
+app.delete('/admin/users/:userId', authMiddleware, requireAdmin, async (req, res) => {
+  const { userId: targetId } = req.params;
+  if (targetId === req.userId) {
+    res.status(400).json({ error: 'Нельзя удалить свою учётную запись' });
+    return;
+  }
+  const db = await readDb();
+  const idx = db.users.findIndex((u) => u.id === targetId);
+  if (idx < 0) {
+    res.status(404).json({ error: 'Пользователь не найден' });
+    return;
+  }
+  const toRemove = db.lessons.filter((l) => l.createdBy === targetId);
+  for (const lesson of toRemove) {
+    for (const f of db.files.filter((x) => x.lessonId === lesson.id)) {
+      const diskPath = path.join(UPLOAD_DIR, f.storageFileName);
+      await fs.unlink(diskPath).catch(() => {});
+    }
+  }
+  const removeIds = new Set(toRemove.map((l) => l.id));
+  db.files = db.files.filter((f) => !removeIds.has(f.lessonId));
+  db.cards = db.cards.filter((c) => !removeIds.has(c.lessonId));
+  db.lessons = db.lessons.filter((l) => !removeIds.has(l.id));
+  db.users.splice(idx, 1);
+  await writeDb(db);
+  res.json({ ok: true });
+});
+
+// --- Lessons (visibility: own + public) ---
+
+app.get('/lessons', authMiddleware, async (req, res) => {
+  const db = await readDb();
+  const me = await loadRequestUser(req);
+  const raw = isAdminUser(me)
+    ? db.lessons
+    : db.lessons.filter(
+        (l) => l.createdBy === req.userId || l.public === true
+      );
+  const list = sortLessonsForClient(raw, req.userId, isAdminUser(me));
+  console.log('[API] GET /lessons ->', list.length, isAdminUser(me) ? 'admin' : 'user');
+  res.json(list);
 });
 
 app.post('/lessons', authMiddleware, async (req, res) => {
@@ -365,6 +572,8 @@ app.post('/lessons', authMiddleware, async (req, res) => {
     createdBy: req.userId,
     name: name.trim(),
     source: 'cloud',
+    public: false,
+    publicSortOrder: 0,
     createdAt: createdAt ?? now,
     updatedAt: updatedAt ?? now,
   };
@@ -374,12 +583,136 @@ app.post('/lessons', authMiddleware, async (req, res) => {
   res.status(201).json(lesson);
 });
 
+app.patch('/lessons/:lessonId', authMiddleware, async (req, res) => {
+  const { lessonId } = req.params;
+  const { public: pub, name } = req.body ?? {};
+  const db = await readDb();
+  const lesson = db.lessons.find((l) => l.id === lessonId);
+  if (!lesson) {
+    res.status(404).json({ error: 'lesson not found' });
+    return;
+  }
+  const me = await loadRequestUser(req);
+  if (typeof name === 'string' && name.trim()) {
+    if (!canModifyLesson(req.userId, lesson, me)) {
+      res.status(403).json({ error: 'Нет прав' });
+      return;
+    }
+    lesson.name = name.trim();
+  }
+  if (typeof pub === 'boolean') {
+    if (!isAdminUser(me)) {
+      res
+        .status(403)
+        .json({ error: 'Только администратор может менять публичность' });
+      return;
+    }
+    if (pub && !lesson.public) {
+      lesson.publicSortOrder = nextPublicSortOrder(db);
+    }
+    lesson.public = pub;
+  }
+  lesson.updatedAt = nowIso();
+  await writeDb(db);
+  res.json(lesson);
+});
+
+app.put(
+  '/admin/lessons/public-order',
+  authMiddleware,
+  requireAdmin,
+  async (req, res) => {
+    const { orderedIds } = req.body ?? {};
+    if (!Array.isArray(orderedIds) || orderedIds.some((id) => typeof id !== 'string')) {
+      res.status(400).json({ error: 'orderedIds: массив id' });
+      return;
+    }
+    const db = await readDb();
+    const publicLessons = db.lessons.filter((l) => l.public === true);
+    if (orderedIds.length !== publicLessons.length) {
+      res.status(400).json({ error: 'Список должен содержать все общие папки' });
+      return;
+    }
+    const idSet = new Set(orderedIds);
+    if (idSet.size !== orderedIds.length) {
+      res.status(400).json({ error: 'Повтор id' });
+      return;
+    }
+    for (const id of orderedIds) {
+      const l = db.lessons.find((x) => x.id === id);
+      if (!l || !l.public) {
+        res.status(400).json({ error: 'Неизвестная или непубличная папка' });
+        return;
+      }
+    }
+    orderedIds.forEach((id, i) => {
+      const l = db.lessons.find((x) => x.id === id);
+      if (l) l.publicSortOrder = i;
+    });
+    await writeDb(db);
+    res.json({ ok: true });
+  }
+);
+
+app.delete('/lessons/:lessonId', authMiddleware, async (req, res) => {
+  const { lessonId } = req.params;
+  const db = await readDb();
+  const lesson = db.lessons.find((l) => l.id === lessonId);
+  if (!lesson) {
+    res.status(404).json({ error: 'lesson not found' });
+    return;
+  }
+  const me = await loadRequestUser(req);
+  if (!canModifyLesson(req.userId, lesson, me)) {
+    res.status(403).json({ error: 'Нет прав' });
+    return;
+  }
+  for (const f of db.files.filter((x) => x.lessonId === lessonId)) {
+    const diskPath = path.join(UPLOAD_DIR, f.storageFileName);
+    await fs.unlink(diskPath).catch(() => {});
+  }
+  db.files = db.files.filter((f) => f.lessonId !== lessonId);
+  db.cards = db.cards.filter((c) => c.lessonId !== lessonId);
+  db.lessons = db.lessons.filter((l) => l.id !== lessonId);
+  await writeDb(db);
+  res.json({ ok: true });
+});
+
+app.delete('/lessons/:lessonId/cards/:cardId', authMiddleware, async (req, res) => {
+  const { lessonId, cardId } = req.params;
+  const db = await readDb();
+  const lesson = db.lessons.find((l) => l.id === lessonId);
+  if (!lesson) {
+    res.status(404).json({ error: 'lesson not found' });
+    return;
+  }
+  const me = await loadRequestUser(req);
+  if (!canModifyLesson(req.userId, lesson, me)) {
+    res.status(403).json({ error: 'Нет прав' });
+    return;
+  }
+  const idx = db.cards.findIndex((c) => c.id === cardId && c.lessonId === lessonId);
+  if (idx < 0) {
+    res.status(404).json({ error: 'card not found' });
+    return;
+  }
+  db.cards.splice(idx, 1);
+  lesson.updatedAt = nowIso();
+  await writeDb(db);
+  res.json({ ok: true });
+});
+
 app.get('/lessons/:lessonId/cards', authMiddleware, async (req, res) => {
   const { lessonId } = req.params;
   const db = await readDb();
   const lesson = db.lessons.find((l) => l.id === lessonId);
   if (!lesson) {
     res.status(404).json({ error: 'lesson not found' });
+    return;
+  }
+  const me = await loadRequestUser(req);
+  if (!canAccessLesson(req.userId, lesson, me)) {
+    res.status(403).json({ error: 'Нет доступа' });
     return;
   }
   const cards = db.cards.filter((c) => c.lessonId === lessonId);
@@ -398,6 +731,11 @@ app.post('/lessons/:lessonId/cards', authMiddleware, async (req, res) => {
   const lesson = db.lessons.find((l) => l.id === lessonId);
   if (!lesson) {
     res.status(404).json({ error: 'lesson not found' });
+    return;
+  }
+  const me = await loadRequestUser(req);
+  if (!canModifyLesson(req.userId, lesson, me)) {
+    res.status(403).json({ error: 'Нет прав на изменение этой папки' });
     return;
   }
   const now = nowIso();
@@ -430,6 +768,11 @@ app.get('/lessons/:lessonId/files', authMiddleware, async (req, res) => {
     res.status(404).json({ error: 'lesson not found' });
     return;
   }
+  const me = await loadRequestUser(req);
+  if (!canAccessLesson(req.userId, lesson, me)) {
+    res.status(403).json({ error: 'Нет доступа' });
+    return;
+  }
   const files = db.files.filter((f) => f.lessonId === lessonId);
   res.json(
     files.map((f) => ({
@@ -450,6 +793,12 @@ app.post('/lessons/:lessonId/files', authMiddleware, upload.single('file'), asyn
   if (!lesson) {
     if (req.file) await fs.unlink(req.file.path).catch(() => {});
     res.status(404).json({ error: 'lesson not found' });
+    return;
+  }
+  const me = await loadRequestUser(req);
+  if (!canModifyLesson(req.userId, lesson, me)) {
+    if (req.file) await fs.unlink(req.file.path).catch(() => {});
+    res.status(403).json({ error: 'Нет прав на изменение этой папки' });
     return;
   }
   if (!req.file) {
@@ -490,6 +839,14 @@ app.get('/lessons/:lessonId/files/:fileId/download', authMiddleware, async (req,
     res.status(404).json({ error: 'file not found' });
     return;
   }
+  const lesson = db.lessons.find((l) => l.id === lessonId);
+  if (lesson) {
+    const me = await loadRequestUser(req);
+    if (!canAccessLesson(req.userId, lesson, me)) {
+      res.status(403).json({ error: 'Нет доступа' });
+      return;
+    }
+  }
   const diskPath = path.join(UPLOAD_DIR, file.storageFileName);
   try {
     await fs.access(diskPath);
@@ -501,6 +858,8 @@ app.get('/lessons/:lessonId/files/:fileId/download', authMiddleware, async (req,
   res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(file.name)}"`);
   res.sendFile(path.resolve(diskPath));
 });
+
+await ensureBootstrapAdmin();
 
 app.listen(PORT, () => {
   console.log(`[API] Server running on http://localhost:${PORT}`);

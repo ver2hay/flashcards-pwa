@@ -20,11 +20,11 @@ import { useAuthStore } from '../features/auth/authStore';
 import { getSessionsByUserId, getAnswersBySessionId, type TrainingSession } from '../db';
 
 const MODE_LABELS: Record<string, string> = {
-  exact: 'Exact Translation',
-  multiple_choice: 'Multiple Choice',
-  learn: 'Learn',
-  review: 'Review',
-  test: 'Test',
+  exact: 'Точный перевод',
+  multiple_choice: 'Варианты ответов',
+  learn: 'Учёба',
+  review: 'Повтор',
+  test: 'Тест',
 };
 
 interface SessionRow {
@@ -71,9 +71,9 @@ export function ResultsListPage() {
     return (
       <Box>
         <Typography variant="h5" component="h1" gutterBottom>
-          Results history
+          История тренировок
         </Typography>
-        <Typography color="text.secondary">Loading…</Typography>
+        <Typography color="text.secondary">Загрузка…</Typography>
       </Box>
     );
   }
@@ -82,10 +82,10 @@ export function ResultsListPage() {
     return (
       <Box>
         <Typography variant="h5" component="h1" gutterBottom>
-          Results history
+          История тренировок
         </Typography>
         <Typography color="text.secondary">
-          No training sessions yet. Complete a session to see results here.
+          Пока нет завершённых тренировок. Завершите урок — здесь появятся результаты.
         </Typography>
       </Box>
     );
@@ -95,7 +95,7 @@ export function ResultsListPage() {
     return (
       <Box>
         <Typography variant="h5" component="h1" gutterBottom>
-          Results history
+          История тренировок
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           {rows.map(({ session, total }) => {
@@ -111,7 +111,7 @@ export function ResultsListPage() {
                       {MODE_LABELS[session.mode] ?? session.mode}
                     </Typography>
                     <Typography variant="body2">
-                      Score: {correct} / {total}
+                      Очки: {correct} / {total}
                     </Typography>
                   </CardContent>
                 </CardActionArea>
@@ -126,18 +126,18 @@ export function ResultsListPage() {
   return (
     <Box>
       <Typography variant="h5" component="h1" gutterBottom>
-        Results history
+        История тренировок
       </Typography>
       <TableContainer component={Paper} variant="outlined">
         <Table size="medium" stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell>Date</TableCell>
-              <TableCell>Mode</TableCell>
-              <TableCell align="right">Score</TableCell>
-              <TableCell align="right">Total</TableCell>
-              <TableCell align="right">Correct</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableCell>Дата</TableCell>
+              <TableCell>Режим</TableCell>
+              <TableCell align="right">Очки</TableCell>
+              <TableCell align="right">Всего</TableCell>
+              <TableCell align="right">Верно</TableCell>
+              <TableCell>Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -161,7 +161,7 @@ export function ResultsListPage() {
                   <TableCell align="right">{correct}</TableCell>
                   <TableCell>
                     <Typography variant="body2" color="primary">
-                      View
+                      Подробнее
                     </Typography>
                   </TableCell>
                 </TableRow>

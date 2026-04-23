@@ -6,6 +6,8 @@ import {
   getCardsByLessonId,
   createSession,
   updateSession,
+  deleteSession,
+  deleteAnswersBySessionId,
 } from '../db';
 import { useTrainingStore } from '../features/training/trainingStore';
 import { shuffle, buildMultipleChoiceOptions } from '../features/training/engine';
@@ -38,6 +40,7 @@ export function TrainPage() {
     setCurrentAnswer,
     setCurrentOptions,
     checkAnswer,
+    markDontKnow,
     nextCard,
     reset,
   } = useTrainingStore();
@@ -75,7 +78,7 @@ export function TrainPage() {
       allCards.push(...list.filter((c) => c.userId === userId));
     }
     if (allCards.length === 0) {
-      setNoCardsMessage('No cards in selected lessons.');
+      setNoCardsMessage('В выбранных папках нет карточек.');
       return;
     }
     const shuffled = shuffle([...allCards]);
@@ -100,16 +103,28 @@ export function TrainPage() {
     }
   };
 
-  const handleSelectOption = async (option: string) => {
+  const handleSelectOption = useCallback(
+    async (option: string) => {
+      setChecking(true);
+      try {
+        await checkAnswer(option);
+      } finally {
+        setChecking(false);
+      }
+    },
+    [checkAnswer]
+  );
+
+  const handleDontKnow = useCallback(async () => {
     setChecking(true);
     try {
-      await checkAnswer(option);
+      await markDontKnow();
     } finally {
       setChecking(false);
     }
-  };
+  }, [markDontKnow]);
 
-  const handleNext = async () => {
+  const handleNext = useCallback(async () => {
     const { done } = nextCard();
     if (done && sessionId) {
       const finalScore = useTrainingStore.getState().score;
@@ -124,6 +139,16 @@ export function TrainPage() {
         buildMultipleChoiceOptions(state.cards, state.currentIndex)
       );
     }
+  }, [sessionId, storeMode, navigate, setCurrentOptions, nextCard]);
+
+  const handleAbort = async () => {
+    const sid = useTrainingStore.getState().sessionId;
+    if (sid) {
+      await deleteAnswersBySessionId(sid);
+      await deleteSession(sid);
+    }
+    reset();
+    navigate('/train', { replace: true });
   };
 
   useEffect(() => {
@@ -149,7 +174,9 @@ export function TrainPage() {
           isCorrect={checkedState?.isCorrect ?? false}
           correctAnswer={currentCard.backText}
           onSelectOption={handleSelectOption}
+          onDontKnow={handleDontKnow}
           onNext={handleNext}
+          onAbort={handleAbort}
           checking={checking}
         />
       );
@@ -167,7 +194,9 @@ export function TrainPage() {
         isCorrect={checkedState?.isCorrect ?? false}
         correctAnswer={currentCard.backText}
         onCheck={handleCheck}
+        onDontKnow={handleDontKnow}
         onNext={handleNext}
+        onAbort={handleAbort}
         checking={checking}
       />
     );

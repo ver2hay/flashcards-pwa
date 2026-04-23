@@ -11,6 +11,16 @@ import {
 } from '../db';
 import { getCloudToken } from '../features/cloud/cloudAuth';
 
+/** Срабатывает после syncLessons (успех/частичный сбой), чтобы UI перечитал Dexie. */
+export const LESSONS_SYNCED_EVENT = 'flashcards:lessons-synced';
+
+function notifyLessonsSynced(userId: string): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(
+    new CustomEvent(LESSONS_SYNCED_EVENT, { detail: { userId } })
+  );
+}
+
 function parseEpoch(value?: string | number): number | undefined {
   if (value === undefined || value === null) return undefined;
   if (typeof value === 'number') return value;
@@ -24,6 +34,9 @@ function normalizeLesson(
     name: string;
     createdAt?: string | number;
     updatedAt?: string | number;
+    createdBy?: string;
+    public?: boolean;
+    publicSortOrder?: number;
   },
   userId: string
 ): Lesson {
@@ -38,6 +51,10 @@ function normalizeLesson(
     createdAt: resolvedCreatedAt,
     updatedAt: resolvedUpdatedAt,
     source: 'cloud',
+    cloudCreatedBy: lesson.createdBy,
+    isPublic: lesson.public === true,
+    publicSortOrder:
+      typeof lesson.publicSortOrder === 'number' ? lesson.publicSortOrder : undefined,
   };
 }
 
@@ -96,47 +113,51 @@ export async function syncLessonFiles(userId: string): Promise<void> {
 }
 
 export async function syncLessons(userId: string): Promise<void> {
-  let remoteLessons: Awaited<ReturnType<typeof fetchLessons>>;
   try {
-    remoteLessons = await fetchLessons();
-  } catch (e) {
-    console.warn('[Sync] remote lessons failed (offline or auth)', e);
-    return;
-  }
-  console.log('[Sync] remote lessons', remoteLessons.length);
-  const normalized = remoteLessons.map((lesson) => normalizeLesson(lesson, userId));
-
-  const localLessons = await getLessonsByUserId(userId);
-  const localById = new Map(localLessons.map((lesson) => [lesson.id, lesson]));
-  const remoteIds = new Set(normalized.map((lesson) => lesson.id));
-
-  await bulkUpsertLessons(normalized);
-  console.log('[Sync] lessons upserted', normalized.length);
-
-  const staleLessonIds = localLessons
-    .filter((lesson) => lesson.source === 'cloud' && !remoteIds.has(lesson.id))
-    .map((lesson) => lesson.id);
-  if (staleLessonIds.length > 0) {
-    await deleteLessons(userId, staleLessonIds);
-  }
-
-  const lessonsToSyncCards = normalized.filter((lesson) => {
-    const local = localById.get(lesson.id);
-    return !local || local.updatedAt !== lesson.updatedAt;
-  });
-
-  for (const lesson of lessonsToSyncCards) {
+    let remoteLessons: Awaited<ReturnType<typeof fetchLessons>>;
     try {
-      await syncCards(userId, lesson.id);
+      remoteLessons = await fetchLessons();
     } catch (e) {
-      console.warn('[Sync] cards failed', lesson.id, e);
+      console.warn('[Sync] remote lessons failed (offline or auth)', e);
+      return;
     }
-  }
+    console.log('[Sync] remote lessons', remoteLessons.length);
+    const normalized = remoteLessons.map((lesson) => normalizeLesson(lesson, userId));
 
-  try {
-    await syncLessonFiles(userId);
-  } catch (e) {
-    console.warn('[Sync] lesson files failed', e);
+    const localLessons = await getLessonsByUserId(userId);
+    const localById = new Map(localLessons.map((lesson) => [lesson.id, lesson]));
+    const remoteIds = new Set(normalized.map((lesson) => lesson.id));
+
+    await bulkUpsertLessons(normalized);
+    console.log('[Sync] lessons upserted', normalized.length);
+
+    const staleLessonIds = localLessons
+      .filter((lesson) => lesson.source === 'cloud' && !remoteIds.has(lesson.id))
+      .map((lesson) => lesson.id);
+    if (staleLessonIds.length > 0) {
+      await deleteLessons(userId, staleLessonIds);
+    }
+
+    const lessonsToSyncCards = normalized.filter((lesson) => {
+      const local = localById.get(lesson.id);
+      return !local || local.updatedAt !== lesson.updatedAt;
+    });
+
+    for (const lesson of lessonsToSyncCards) {
+      try {
+        await syncCards(userId, lesson.id);
+      } catch (e) {
+        console.warn('[Sync] cards failed', lesson.id, e);
+      }
+    }
+
+    try {
+      await syncLessonFiles(userId);
+    } catch (e) {
+      console.warn('[Sync] lesson files failed', e);
+    }
+  } finally {
+    notifyLessonsSynced(userId);
   }
 }
 

@@ -106,6 +106,17 @@ export class FlashcardsDB extends Dexie {
             }
           )
       );
+
+    this.version(6)
+      .stores({
+        users: 'id, &email',
+        folders: 'id, userId, createdAt, updatedAt',
+        lessons: 'id, userId, updatedAt, source',
+        cards: 'id, userId, folderId, createdAt',
+        trainingSessions: 'id, userId, startedAt, finishedAt',
+        trainingAnswers: 'id, sessionId, cardId',
+        lessonFiles: 'id, userId, lessonId, createdAt',
+      });
   }
 }
 

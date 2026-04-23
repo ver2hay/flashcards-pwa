@@ -29,3 +29,10 @@ docker run -d --name "$CONTAINER_NAME" --restart unless-stopped \
 
 echo "OK. Logs: docker logs -f $CONTAINER_NAME"
 docker logs --tail 15 "$CONTAINER_NAME" || true
+
+# После смены dist (vite build) bind часто «залипает» пустым — 403, пока не перезапустить.
+NGINX_CTN="${FLASHCARDS_NGINX_CONTAINER:-flashcards-nginx}"
+if docker ps -a --format '{{.Names}}' | grep -qx "$NGINX_CTN"; then
+  echo "Restarting $NGINX_CTN (static files)…"
+  docker restart "$NGINX_CTN" >/dev/null
+fi

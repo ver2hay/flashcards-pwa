@@ -17,6 +17,7 @@ import {
   loginToCloud,
   requestEmailCode,
   verifyEmailCode,
+  type MeResponse,
 } from '../../services/cloudAuthApi';
 
 export type AuthError = { success: false; error: string };
@@ -31,9 +32,16 @@ type PendingAuth = {
   purpose: PendingPurpose;
 } | null;
 
+export type AppUserRole = 'admin' | 'user' | null;
+
+function roleFromMe(me: MeResponse): AppUserRole {
+  return me.role === 'admin' ? 'admin' : 'user';
+}
+
 interface AuthState {
   userId: string | null;
   email: string | null;
+  role: AppUserRole;
   isHydrated: boolean;
   isOnline: boolean;
   sessionExpired: boolean;
@@ -53,6 +61,7 @@ interface AuthState {
   revalidateOnline: () => Promise<void>;
   setOnlineStatus: (online: boolean) => void;
   logout: () => void;
+  syncRoleFromServer: () => Promise<void>;
 }
 
 function isOnline(): boolean {
@@ -62,22 +71,33 @@ function isOnline(): boolean {
 export const useAuthStore = create<AuthState>((set, get) => ({
   userId: null,
   email: null,
+  role: null,
   isHydrated: false,
   isOnline: isOnline(),
   sessionExpired: false,
   pending: null,
 
+  syncRoleFromServer: async () => {
+    if (!isCloudApiConfigured || !getCloudToken()) return;
+    try {
+      const me = await fetchMe();
+      set({ role: roleFromMe(me) });
+    } catch {
+      /* keep previous role */
+    }
+  },
+
   hydrateFromStorage: async () => {
     const id = getSessionUserId();
     if (!id) {
-      set({ userId: null, email: null, isHydrated: true });
+      set({ userId: null, email: null, role: null, isHydrated: true });
       return;
     }
     const user = await getUserById(id);
     if (!user) {
       clearSessionUserId();
       clearCloudToken();
-      set({ userId: null, email: null, isHydrated: true });
+      set({ userId: null, email: null, role: null, isHydrated: true });
       return;
     }
     const token = getCloudToken();
@@ -87,6 +107,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isHydrated: true,
       sessionExpired: !token && isCloudApiConfigured && isOnline(),
     });
+    if (token && isCloudApiConfigured) {
+      void get().syncRoleFromServer();
+    } else {
+      set({ role: null });
+    }
   },
 
   requestCode: async (email, password, purpose) => {
@@ -152,9 +177,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         emailVerified: true,
       });
       setSessionUserId(user.id);
+      let nextRole: AppUserRole = 'user';
+      try {
+        const me = await fetchMe();
+        nextRole = roleFromMe(me);
+      } catch {
+        nextRole = 'user';
+      }
       set({
         userId: user.id,
         email: user.email,
+        role: nextRole,
         pending: null,
         sessionExpired: false,
       });
@@ -188,9 +221,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           emailVerified: true,
         });
         setSessionUserId(user.id);
+        let nextRole: AppUserRole = 'user';
+        try {
+          const me = await fetchMe();
+          nextRole = roleFromMe(me);
+        } catch {
+          nextRole = 'user';
+        }
         set({
           userId: user.id,
           email: user.email,
+          role: nextRole,
           sessionExpired: false,
         });
         return { success: true };
@@ -216,6 +257,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({
       userId: cached.id,
       email: cached.email,
+      role: null,
       sessionExpired: false,
     });
     return { success: true };
@@ -240,8 +282,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return;
     }
     try {
-      await fetchMe();
-      set({ sessionExpired: false });
+      const me = await fetchMe();
+      set({ sessionExpired: false, role: roleFromMe(me) });
     } catch {
       clearCloudToken();
       set({ sessionExpired: true });
@@ -261,6 +303,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({
       userId: null,
       email: null,
+      role: null,
       pending: null,
       sessionExpired: false,
     });

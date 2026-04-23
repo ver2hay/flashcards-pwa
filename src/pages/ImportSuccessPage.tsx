@@ -10,20 +10,29 @@ interface ImportSuccessState {
   count: number;
 }
 
+function pluralCards(n: number): string {
+  const m = n % 10;
+  const m100 = n % 100;
+  if (m100 >= 11 && m100 <= 14) return 'карточек';
+  if (m === 1) return 'карточка';
+  if (m >= 2 && m <= 4) return 'карточки';
+  return 'карточек';
+}
+
 export function ImportSuccessPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as ImportSuccessState | null;
-  const lessonName = state?.lessonName ?? state?.folderName ?? 'Lesson';
+  const lessonName = state?.lessonName ?? state?.folderName ?? 'Урок';
   const count = state?.count ?? 0;
 
   return (
     <Box>
       <Typography variant="h5" component="h1" gutterBottom>
-        Import complete
+        Импорт завершён
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-        <strong>{lessonName}</strong>: {count} card{count === 1 ? '' : 's'} imported.
+        <strong>{lessonName}</strong>: импортировано {count} {pluralCards(count)}.
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Button
@@ -32,7 +41,7 @@ export function ImportSuccessPage() {
           onClick={() => navigate('/folders')}
           fullWidth
         >
-          Go to lessons
+          К папкам
         </Button>
         <Button
           variant="contained"
@@ -40,7 +49,7 @@ export function ImportSuccessPage() {
           onClick={() => navigate('/train')}
           fullWidth
         >
-          Start training
+          Начать тренировку
         </Button>
         <Button
           variant="outlined"
@@ -48,7 +57,7 @@ export function ImportSuccessPage() {
           onClick={() => navigate('/import')}
           fullWidth
         >
-          Import more
+          Импортировать ещё
         </Button>
       </Box>
     </Box>

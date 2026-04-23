@@ -8,19 +8,21 @@ export interface CheckedState {
 
 export interface TrainingModeOption {
   value: string;
+  /** Подпись для UI (только русский) */
   label: string;
-  labelRu: string;
   disabled?: boolean;
   disabledReason?: string;
 }
 
 export const TRAINING_MODE_OPTIONS: TrainingModeOption[] = [
-  { value: 'exact', label: 'Exact Translation', labelRu: 'Точный перевод' },
+  { value: 'exact', label: 'Точный перевод' },
   {
     value: 'multiple_choice',
-    label: 'Multiple Choice',
-    labelRu: 'Варианты ответов',
+    label: 'Варианты ответов',
   },
 ];
+
+/** Сохраняется в ответе и в статистике при нажатии «Я не знаю». */
+export const DONT_KNOW_USER_ANSWER = '(не знал)';
 
 export type { Card };

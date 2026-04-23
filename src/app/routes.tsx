@@ -8,6 +8,8 @@ import { ImportSuccessPage } from '../pages/ImportSuccessPage';
 import { TrainPage } from '../pages/TrainPage';
 import { ResultsListPage } from '../pages/ResultsListPage';
 import { ResultsPage } from '../pages/ResultsPage';
+import { AdminPage } from '../pages/AdminPage';
+import { AdminRoute } from './AdminRoute';
 
 const basename =
   import.meta.env.BASE_URL.replace(/\/$/, '') === ''
@@ -35,6 +37,14 @@ export const router = createBrowserRouter(
             { path: 'train', element: <TrainPage /> },
             { path: 'results', element: <ResultsListPage /> },
             { path: 'results/:sessionId', element: <ResultsPage /> },
+            {
+              path: 'admin',
+              element: (
+                <AdminRoute>
+                  <AdminPage />
+                </AdminRoute>
+              ),
+            },
           ],
         },
       ],

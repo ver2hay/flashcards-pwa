@@ -31,11 +31,11 @@ interface MistakeRow {
 }
 
 const MODE_LABELS: Record<string, string> = {
-  exact: 'Exact Translation (Точный перевод)',
-  multiple_choice: 'Multiple Choice (Варианты ответов)',
-  learn: 'Learn',
-  review: 'Review',
-  test: 'Test',
+  exact: 'Точный перевод',
+  multiple_choice: 'Варианты ответов',
+  learn: 'Учёба',
+  review: 'Повтор',
+  test: 'Тест',
 };
 
 export function ResultsPage() {
@@ -79,10 +79,10 @@ export function ResultsPage() {
     return (
       <Box>
         <Typography variant="h5" component="h1" gutterBottom>
-          Results
+          Результаты
         </Typography>
         <Typography color="text.secondary">
-          {loading ? 'Loading…' : 'Session not found.'}
+          {loading ? 'Загрузка…' : 'Сессия не найдена.'}
         </Typography>
       </Box>
     );
@@ -95,22 +95,22 @@ export function ResultsPage() {
   return (
     <Box>
       <Typography variant="h5" component="h1" gutterBottom>
-        Results
+        Результаты
       </Typography>
 
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
         <Box sx={{ width: { xs: '100%', md: '33.333%' } }}>
           <Card variant="outlined">
             <CardContent>
-              <Typography variant="h6">Summary</Typography>
+              <Typography variant="h6">Сводка</Typography>
               <Typography variant="body1" sx={{ mt: 1 }}>
-                <strong>Score:</strong> {correctCount} / {total}
+                <strong>Очки:</strong> {correctCount} / {total}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Mode: {MODE_LABELS[session.mode] ?? session.mode}
+                Режим: {MODE_LABELS[session.mode] ?? session.mode}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Date: {dateStr}
+                Дата: {dateStr}
               </Typography>
 
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} sx={{ mt: 2 }}>
@@ -120,7 +120,7 @@ export function ResultsPage() {
                   onClick={() => navigate('/folders')}
                   sx={{ width: { xs: '100%', md: 'auto' } }}
                 >
-                  Go to folders
+                  К папкам
                 </Button>
                 <Button
                   variant="contained"
@@ -128,7 +128,7 @@ export function ResultsPage() {
                   onClick={() => navigate('/train')}
                   sx={{ width: { xs: '100%', md: 'auto' } }}
                 >
-                  Start training
+                  Новая тренировка
                 </Button>
               </Stack>
             </CardContent>
@@ -139,15 +139,15 @@ export function ResultsPage() {
           {mistakes.length > 0 ? (
             <>
               <Typography variant="h6" sx={{ mt: { xs: 2, md: 0 }, mb: 1 }}>
-                Mistakes
+                Ошибки
               </Typography>
               <TableContainer component={Paper} sx={{ mb: 2 }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Kazakh (prompt)</TableCell>
-                      <TableCell>Correct (Russian)</TableCell>
-                      <TableCell>Your answer</TableCell>
+                      <TableCell>Фраза (слева на карточке)</TableCell>
+                      <TableCell>Правильный ответ (рус.)</TableCell>
+                      <TableCell>Ваш ответ</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -167,7 +167,7 @@ export function ResultsPage() {
               </TableContainer>
             </>
           ) : (
-            <Typography color="text.secondary">No mistakes — great job!</Typography>
+            <Typography color="text.secondary">Ошибок нет — отлично!</Typography>
           )}
         </Box>
       </Box>

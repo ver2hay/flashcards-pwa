@@ -80,4 +80,5 @@ export {
   getById as getAnswerById,
   getBySessionId as getAnswersBySessionId,
   deleteAnswer,
+  deleteBySessionId as deleteAnswersBySessionId,
 } from './repositories/trainingAnswers';

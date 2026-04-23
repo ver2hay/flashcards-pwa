@@ -20,11 +20,12 @@ import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
 import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
 import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
-import { useEffect, useState } from 'react';
+import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../features/auth/authStore';
 
-const navItems = [
+const baseNavItems = [
   { path: '/folders', label: 'Папки', icon: FolderCopyRoundedIcon },
   { path: '/import', label: 'Импорт', icon: CloudUploadRoundedIcon },
   { path: '/train', label: 'Урок', icon: SchoolRoundedIcon },
@@ -40,9 +41,20 @@ export function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const email = useAuthStore((state) => state.email);
+  const role = useAuthStore((state) => state.role);
   const logout = useAuthStore((state) => state.logout);
   const sessionExpired = useAuthStore((state) => state.sessionExpired);
   const setOnlineStatus = useAuthStore((state) => state.setOnlineStatus);
+
+  const navItems = useMemo(() => {
+    if (role === 'admin') {
+      return [
+        ...baseNavItems,
+        { path: '/admin', label: 'Админ', icon: AdminPanelSettingsRoundedIcon },
+      ] as const;
+    }
+    return baseNavItems;
+  }, [role]);
 
   const navValue = Math.max(
     0,

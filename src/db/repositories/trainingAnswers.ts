@@ -32,3 +32,7 @@ export async function getBySessionId(
 export async function deleteAnswer(id: string): Promise<void> {
   await db.trainingAnswers.delete(id);
 }
+
+export async function deleteBySessionId(sessionId: string): Promise<void> {
+  await db.trainingAnswers.where('sessionId').equals(sessionId).delete();
+}

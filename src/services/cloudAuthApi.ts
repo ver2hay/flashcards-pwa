@@ -9,10 +9,13 @@ export interface AuthTokenResponse {
   email: string;
 }
 
+export type CloudUserRole = 'admin' | 'user';
+
 export interface MeResponse {
   id: string;
   email: string;
   emailVerified: boolean;
+  role?: CloudUserRole;
 }
 
 function ensureConfigured(): void {

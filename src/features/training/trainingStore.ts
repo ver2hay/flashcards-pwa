@@ -4,6 +4,7 @@ import type { TrainingMode } from '../../db';
 import { createAnswer, updateSession } from '../../db';
 import { checkAnswer as checkAnswerEngine } from './engine';
 import type { CheckedState } from './types';
+import { DONT_KNOW_USER_ANSWER } from './types';
 
 interface TrainingState {
   sessionId: string | null;
@@ -26,6 +27,7 @@ interface TrainingState {
   setCurrentAnswer: (text: string) => void;
   setCurrentOptions: (options: string[]) => void;
   checkAnswer: (selectedAnswer?: string) => Promise<void>;
+  markDontKnow: () => Promise<void>;
   nextCard: () => { done: boolean };
   reset: () => void;
 }
@@ -100,6 +102,29 @@ export const useTrainingStore = create<TrainingState>((set, get) => ({
     set({
       checkedMap: { ...checkedMap, [card.id]: newChecked },
       score: newScore,
+      currentAnswer: '',
+    });
+  },
+
+  markDontKnow: async () => {
+    const { sessionId, cards, currentIndex, checkedMap, score } = get();
+    if (!sessionId || currentIndex >= cards.length) return;
+    const card = cards[currentIndex];
+    if (checkedMap[card.id]?.checked) return;
+    const newChecked: CheckedState = {
+      checked: true,
+      userAnswer: DONT_KNOW_USER_ANSWER,
+      isCorrect: false,
+    };
+    await createAnswer({
+      sessionId,
+      cardId: card.id,
+      userAnswer: DONT_KNOW_USER_ANSWER,
+      isCorrect: false,
+    });
+    await updateSession(sessionId, { score });
+    set({
+      checkedMap: { ...checkedMap, [card.id]: newChecked },
       currentAnswer: '',
     });
   },
